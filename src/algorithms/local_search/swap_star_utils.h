@@ -24,6 +24,13 @@ All rights reserved (see LICENSE).
 
 namespace vroom::ls {
 
+/**
+ * LLM: @brief Represents a SWAP* move swapping jobs between two routes.
+ *
+ * Stores the gain and insertion positions for swapping a job from the source
+ * route with a job from the target route, where each job can be reinserted at
+ * a different position in the opposite route.
+ */
 struct SwapChoice {
   Eval gain;
   Index s_rank{0};
@@ -54,6 +61,22 @@ const auto SwapChoiceCmp = [](const SwapChoice& lhs, const SwapChoice& rhs) {
 
 const SwapChoice empty_swap_choice = {Eval(), 0, 0, 0, 0};
 
+/**
+ * LLM: @brief Validates that a swap choice respects precomputed insertion rank bounds.
+ *
+ * Checks that the proposed insertion positions are still valid given the
+ * precomputed insertion rank bounds in the solution state, accounting for the
+ * removals that will occur as part of the swap.
+ *
+ * @tparam Route Type of route object.
+ * @param sol_state Current solution state with precomputed bounds.
+ * @param s_vehicle Index of source vehicle.
+ * @param source Source route.
+ * @param t_vehicle Index of target vehicle.
+ * @param target Target route.
+ * @param sc Swap choice to validate.
+ * @return True if the swap choice respects insertion rank bounds.
+ */
 template <class Route>
 bool valid_choice_for_insertion_ranks(const utils::SolutionState& sol_state,
                                       const Index s_vehicle,
@@ -129,6 +152,11 @@ bool valid_choice_for_insertion_ranks(const utils::SolutionState& sol_state,
   return valid;
 }
 
+/**
+ * LLM: @brief Represents a sequence of jobs and their insertion bounds.
+ *
+ * Stores the jobs to be inserted and the range in which they're being inserted.
+ */
 struct InsertionRange {
   std::vector<Index> range;
   Index first_rank;
@@ -137,6 +165,18 @@ struct InsertionRange {
 
 // Compute insertion range in source route when removing job at s_rank
 // and adding job at job_rank in source route at insertion_rank.
+/**
+ * LLM: @brief Computes the sequence of jobs after a removal and insertion.
+ *
+ * Determines the resulting job sequence when removing one job and inserting
+ * another at a specified position in a route.
+ *
+ * @param s_route Original route job sequence.
+ * @param s_rank Position of job to remove.
+ * @param job_rank Job to insert.
+ * @param insertion_rank Position where new job is inserted.
+ * @return InsertionRange with the resulting job sequence and bounds.
+ */
 inline InsertionRange get_insert_range(const std::vector<Index>& s_route,
                                        Index s_rank,
                                        Index job_rank,
@@ -169,6 +209,24 @@ inline InsertionRange get_insert_range(const std::vector<Index>& s_route,
   return insert;
 }
 
+/**
+ * LLM: @brief Finds the best SWAP* move between two routes.
+ *
+ * Implements the SWAP* operator which evaluates swapping jobs between routes
+ * where each job can be reinserted at the best position (not necessarily the
+ * original position). Uses preprocessing to identify top insertion positions
+ * and efficiently explores promising swap combinations.
+ *
+ * @tparam Route Type of route object.
+ * @param input Input problem instance.
+ * @param sol_state Current solution state with precomputed data.
+ * @param s_vehicle Index of source vehicle.
+ * @param source Source route.
+ * @param t_vehicle Index of target vehicle.
+ * @param target Target route.
+ * @param best_known_gain Best gain found so far (for pruning).
+ * @return SwapChoice with best swap move details, or empty if no improving swap found.
+ */
 template <class Route>
 SwapChoice compute_best_swap_star_choice(const Input& input,
                                          const utils::SolutionState& sol_state,

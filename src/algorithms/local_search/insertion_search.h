@@ -16,6 +16,12 @@ All rights reserved (see LICENSE).
 
 namespace vroom::ls {
 
+/**
+ * LLM: @brief Represents the best insertion found for a job in a route.
+ *
+ * Stores the cost and position(s) for inserting either a single job or a
+ * pickup-delivery pair into a route.
+ */
 struct RouteInsertion {
   Eval eval{NO_EVAL};
   Amount delivery;
@@ -28,6 +34,20 @@ struct RouteInsertion {
   }
 };
 
+/**
+ * LLM: @brief Finds the best position to insert a single job into a route.
+ *
+ * Evaluates all feasible insertion positions for a single job (non pickup-delivery)
+ * considering vehicle capacity, time windows, and other constraints.
+ *
+ * @tparam Route Type of route object.
+ * @param input Input problem instance.
+ * @param sol_state Current solution state with precomputed bounds.
+ * @param j Index of the job to insert.
+ * @param v Index of the vehicle/route.
+ * @param route Route to insert the job into.
+ * @return RouteInsertion with best insertion position and cost.
+ */
 template <class Route>
 RouteInsertion
 compute_best_insertion_single(const Input& input,
@@ -62,6 +82,22 @@ compute_best_insertion_single(const Input& input,
   return result;
 }
 
+/**
+ * LLM: @brief Checks if a pickup-delivery insertion is valid for vehicle capacity.
+ *
+ * Validates that inserting a sequence of jobs (including a pickup-delivery pair)
+ * does not violate the vehicle's capacity constraints at any point along the route.
+ *
+ * @tparam Route Type of route object.
+ * @tparam Iter Forward iterator type.
+ * @param input Input problem instance.
+ * @param r Route to check capacity for.
+ * @param start Iterator to start of job sequence.
+ * @param end Iterator to end of job sequence.
+ * @param pickup_r Rank where pickup is inserted.
+ * @param delivery_r Rank where delivery is inserted.
+ * @return True if the insertion respects capacity constraints.
+ */
 template <class Route, std::forward_iterator Iter>
 bool valid_for_capacity(const Input& input,
                         const Route& r,
@@ -86,6 +122,22 @@ bool valid_for_capacity(const Input& input,
                                                     delivery_r);
 }
 
+/**
+ * LLM: @brief Finds the best positions to insert a pickup-delivery job pair.
+ *
+ * Evaluates all feasible pairs of positions for inserting a pickup and its
+ * corresponding delivery, ensuring the pickup occurs before the delivery and
+ * all constraints are satisfied.
+ *
+ * @tparam Route Type of route object.
+ * @param input Input problem instance.
+ * @param sol_state Current solution state with precomputed bounds.
+ * @param j Index of the pickup job (delivery is at j+1).
+ * @param v Index of the vehicle/route.
+ * @param route Route to insert the pickup-delivery pair into.
+ * @param cost_threshold Maximum acceptable insertion cost.
+ * @return RouteInsertion with best pickup and delivery positions and cost.
+ */
 template <class Route>
 RouteInsertion compute_best_insertion_pd(const Input& input,
                                          const utils::SolutionState& sol_state,

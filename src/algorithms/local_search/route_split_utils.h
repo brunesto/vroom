@@ -17,6 +17,11 @@ All rights reserved (see LICENSE).
 
 namespace vroom::ls {
 
+/**
+ * LLM: @brief Represents a potential route split decision.
+ *
+ * Stores the gain and vehicle assignments for splitting a route into two parts.
+ */
 struct SplitChoice {
   Eval gain;
   Index split_rank;
@@ -27,6 +32,22 @@ struct SplitChoice {
 
 constexpr SplitChoice empty_route_split_choice = {NO_GAIN, 0, 0, 0};
 
+/**
+ * LLM: @brief Finds the best way to split a route across two empty vehicles.
+ *
+ * Evaluates all possible split points and vehicle assignments to find the split
+ * that maximizes cost reduction. The route is divided into a "begin" part and
+ * an "end" part, each assigned to a different empty vehicle.
+ *
+ * @tparam Route Type of route object.
+ * @param input Input problem instance.
+ * @param sol_state Current solution state.
+ * @param s_vehicle Index of the vehicle whose route is being split.
+ * @param source Route to potentially split.
+ * @param empty_route_ranks Indices of available empty vehicles.
+ * @param best_known_gain Best gain found so far (for pruning).
+ * @return SplitChoice with best split position and vehicle assignments.
+ */
 template <class Route>
 SplitChoice
 compute_best_route_split_choice(const Input& input,
