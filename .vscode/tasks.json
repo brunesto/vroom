@@ -1,0 +1,20 @@
+{
+    "tasks": [
+        {
+            "label": "make build",   // Name of the task, referenced in launch.json
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}/src" // Set working directory to where the makefile is located
+            },
+            "command": "make",       // The command to run in the terminal
+            "args": [],              // Add target names here if needed, e.g., ["all"]
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": ["$gcc"], // Captures compile errors in the "Problems" tab
+            "detail": "debug"
+        }    
+    ],
+    "version": "2.0.0"
+}

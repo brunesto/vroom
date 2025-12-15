@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug vroom-in.json",
+            "type": "cppdbg",
+            "request": "launch",
+            // TODO: Update this path to point to the binary created by 'make'
+            "program": "${workspaceFolder}/bin/vroom",
+            "args": ["-i","${workspaceFolder}/vroom-in.json"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "preLaunchTask": "make build" // This must match the label in tasks.json
+        }
+    ]
+}

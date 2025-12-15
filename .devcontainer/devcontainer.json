@@ -1,0 +1,17 @@
+{
+  "name": "Debian 12 C++ (GCC 12)",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools",       // C/C++ Intellisense & Debugging
+        "ms-vscode.cmake-tools",    // CMake support (optional but recommended)
+        "vadimcn.vscode-lldb"       // CodeLLDB (often better than default GDB support)
+      ]
+    }
+  },
+  // Use 'root' for simplicity, or set up a non-root user in Dockerfile if preferred
+  "remoteUser": "root"
+}
