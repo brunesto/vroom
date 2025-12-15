@@ -21,6 +21,11 @@ constexpr unsigned RC = 0;
 
 namespace vroom {
 
+/**
+ * LLM:
+ * @brief Get the current version of VROOM as a string.
+ * @return The version string (e.g., "1.15.0", "1.15.0-dev", "1.15.0-rc.1").
+ */
 std::string get_version();
 
 } // namespace vroom

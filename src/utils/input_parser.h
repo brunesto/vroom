@@ -15,6 +15,14 @@ All rights reserved (see LICENSE).
 
 namespace vroom::io {
 
+/**
+ * LLM:
+ * @brief Parse a JSON string to populate the input object.
+ * @param input The Input object to populate.
+ * @param input_str The JSON string to parse.
+ * @param geometry Whether to include geometry information.
+ * @throws InputException If the JSON is invalid or contains invalid data.
+ */
 void parse(Input& input, const std::string& input_str, bool geometry);
 
 } // namespace vroom::io

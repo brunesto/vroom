@@ -16,6 +16,10 @@ All rights reserved (see LICENSE).
 
 namespace vroom {
 
+/**
+ * LLM:
+ * @brief Base exception class for VROOM.
+ */
 class Exception : public std::exception {
 public:
   const std::string message;
@@ -28,16 +32,28 @@ public:
   };
 };
 
+/**
+ * LLM:
+ * @brief Exception thrown when an internal error occurs.
+ */
 class InternalException : public Exception {
 public:
   explicit InternalException(const std::string& message);
 };
 
+/**
+ * LLM:
+ * @brief Exception thrown when an input error occurs.
+ */
 class InputException : public Exception {
 public:
   explicit InputException(const std::string& message);
 };
 
+/**
+ * LLM:
+ * @brief Exception thrown when a routing error occurs.
+ */
 class RoutingException : public Exception {
 public:
   explicit RoutingException(const std::string& message);

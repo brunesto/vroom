@@ -23,15 +23,41 @@ All rights reserved (see LICENSE).
 
 namespace vroom::utils {
 
+/**
+ * LLM:
+ * @brief Round a floating-point value to the nearest integer-like value using half-up rounding.
+ * @tparam T Integral or integral-like target type.
+ * @param value Floating-point value to round.
+ * @return The rounded value cast to T.
+ */
 template <typename T> T round(double value) {
   constexpr double round_increment = 0.5;
   return static_cast<T>(value + round_increment);
 }
 
+/**
+ * LLM:
+ * @brief Obtain a high-resolution timestamp used for timing operations.
+ * @return The current TimePoint.
+ */
 TimePoint now();
 
+/**
+ * LLM:
+ * @brief Create an amount vector with every dimension saturated to Capacity max.
+ * @param size Number of dimensions in the amount vector.
+ * @return Amount initialized at the maximum capacity.
+ */
 Amount max_amount(std::size_t size);
 
+/**
+ * LLM:
+ * @brief Add two user costs while preventing overflow.
+ * @param a First operand.
+ * @param b Second operand.
+ * @return Sum of a and b.
+ * @throws InputException If the addition would overflow UserCost.
+ */
 inline UserCost add_without_overflow(UserCost a, UserCost b) {
   if (a > std::numeric_limits<UserCost>::max() - b) {
     throw InputException(
@@ -41,6 +67,12 @@ inline UserCost add_without_overflow(UserCost a, UserCost b) {
 }
 
 // Taken from https://stackoverflow.com/a/72073933.
+/**
+ * LLM:
+ * @brief Compute a stable hash for a vector of identifiers.
+ * @param vec Vector of values to hash.
+ * @return 32-bit hash value representing the vector contents.
+ */
 inline uint32_t get_vector_hash(const std::vector<uint32_t>& vec) {
   uint32_t seed = vec.size();
   for (auto x : vec) {
@@ -52,10 +84,22 @@ inline uint32_t get_vector_hash(const std::vector<uint32_t>& vec) {
   return seed;
 }
 
+/**
+ * LLM:
+ * @brief Translate an exploration level into the associated search depth.
+ * @param exploration_level Local search exploration level.
+ * @return Depth value used by neighborhood search.
+ */
 inline unsigned get_depth(unsigned exploration_level) {
   return exploration_level;
 }
 
+/**
+ * LLM:
+ * @brief Determine how many search attempts to run for a given exploration level.
+ * @param exploration_level Local search exploration level.
+ * @return Number of searches that should be executed.
+ */
 inline unsigned get_nb_searches(unsigned exploration_level) {
   assert(exploration_level <= MAX_EXPLORATION_LEVEL);
 
@@ -72,6 +116,16 @@ inline unsigned get_nb_searches(unsigned exploration_level) {
 
 // Evaluate adding job with rank job_rank in given route at given rank
 // for vehicle v.
+/**
+ * LLM:
+ * @brief Evaluate inserting a single job at a position within a route.
+ * @param input Problem input containing jobs and vehicles.
+ * @param job_rank Rank of the job to insert.
+ * @param v Vehicle in charge of the route.
+ * @param route Current sequence of job ranks served by the vehicle.
+ * @param rank Target position for the insertion.
+ * @return Evaluation delta resulting from the insertion.
+ */
 inline Eval addition_eval(const Input& input,
                           Index job_rank,
                           const Vehicle& v,
@@ -279,6 +333,19 @@ inline Eval get_range_removal_gain(const SolutionState& sol_state,
 // portion for route1 with the *non-empty* range [insertion_start;
 // insertion_end) from route_2. Returns a tuple to evaluate at once
 // both options where new range is inserted as is, or reversed.
+/**
+ * LLM:
+ * @brief Compute cost variation when replacing a route segment with another segment.
+ * @param input Problem input.
+ * @param sol_state Solution state caches.
+ * @param route_1 The route being modified.
+ * @param first_rank Start rank of the segment to replace in route_1.
+ * @param last_rank End rank (exclusive) of the segment to replace in route_1.
+ * @param route_2 The route providing the new segment.
+ * @param insertion_start Start rank of the new segment in route_2.
+ * @param insertion_end End rank (exclusive) of the new segment in route_2.
+ * @return A tuple containing the evaluation delta for inserting the segment as-is, and reversed.
+ */
 inline std::tuple<Eval, Eval>
 addition_eval_delta(const Input& input,
                     const SolutionState& sol_state,
@@ -436,6 +503,17 @@ addition_eval_delta(const Input& input,
 // last_rank) portion for route raw_route with the job at
 // job_rank. The case where the replaced range is empty is already
 // covered by addition_eval.
+/**
+ * LLM:
+ * @brief Compute cost variation when replacing a route segment with a single job.
+ * @param input Problem input.
+ * @param sol_state Solution state caches.
+ * @param raw_route The route being modified.
+ * @param first_rank Start rank of the segment to replace.
+ * @param last_rank End rank (exclusive) of the segment to replace.
+ * @param job_rank Rank of the job to insert.
+ * @return Evaluation delta resulting from the replacement.
+ */
 inline Eval addition_eval_delta(const Input& input,
                                 const SolutionState& sol_state,
                                 const RawRoute& raw_route,
@@ -505,6 +583,16 @@ inline Eval addition_eval_delta(const Input& input,
 
 // Compute cost variation when removing the range [first_rank,
 // last_rank) from route.
+/**
+ * LLM:
+ * @brief Compute cost variation when removing a segment from a route.
+ * @param input Problem input.
+ * @param sol_state Solution state caches.
+ * @param route The route being modified.
+ * @param first_rank Start rank of the segment to remove.
+ * @param last_rank End rank (exclusive) of the segment to remove.
+ * @return Evaluation delta resulting from the removal.
+ */
 inline Eval removal_gain(const Input& input,
                          const SolutionState& sol_state,
                          const RawRoute& route,
@@ -571,6 +659,14 @@ inline Eval removal_gain(const Input& input,
   return cost_delta;
 }
 
+/**
+ * LLM:
+ * @brief Compute the maximum edge evaluation in a route.
+ * @param input Problem input.
+ * @param v Vehicle serving the route.
+ * @param route Sequence of job ranks.
+ * @return The maximum evaluation among all edges in the route.
+ */
 inline Eval max_edge_eval(const Input& input,
                           const Vehicle& v,
                           const std::vector<Index>& route) {
@@ -602,6 +698,16 @@ inline Eval max_edge_eval(const Input& input,
 // Helper function for SwapStar operator, computing part of the eval
 // for in-place replacing of job at rank in route r with job at
 // job_rank.
+/**
+ * LLM:
+ * @brief Compute evaluation delta for in-place job replacement (SwapStar helper).
+ * @param input Problem input.
+ * @param job_rank Rank of the new job.
+ * @param v Vehicle serving the route.
+ * @param r Current route.
+ * @param rank Position of the job to be replaced.
+ * @return Evaluation delta for the replacement.
+ */
 inline Eval in_place_delta_eval(const Input& input,
                                 Index job_rank,
                                 const Vehicle& v,
@@ -667,19 +773,59 @@ inline Eval in_place_delta_eval(const Input& input,
          v.task_eval(added_task_duration);
 }
 
+/**
+ * LLM:
+ * @brief Calculate the sum of priorities for jobs in a route.
+ * @param input Problem input.
+ * @param route Sequence of job ranks.
+ * @return Sum of priorities.
+ */
 Priority priority_sum_for_route(const Input& input,
                                 const std::vector<Index>& route);
 
+/**
+ * LLM:
+ * @brief Calculate the total evaluation (cost and duration) for a route.
+ * @param input Problem input.
+ * @param vehicle_rank Rank of the vehicle serving the route.
+ * @param route Sequence of job ranks.
+ * @return Total evaluation of the route.
+ */
 Eval route_eval_for_vehicle(const Input& input,
                             Index vehicle_rank,
                             const std::vector<Index>& route);
 
+/**
+ * LLM:
+ * @brief Validate time windows for a task.
+ * @param tws Vector of time windows.
+ * @param id ID of the task (for error reporting).
+ * @param type Type of the task (for error reporting).
+ * @throws InputException If time windows are invalid.
+ */
 void check_tws(const std::vector<TimeWindow>& tws,
                Id id,
                const std::string& type);
 
+/**
+ * LLM:
+ * @brief Validate priority value.
+ * @param priority Priority value to check.
+ * @param id ID of the task (for error reporting).
+ * @param type Type of the task (for error reporting).
+ * @throws InputException If priority is invalid.
+ */
 void check_priority(Priority priority, Id id, const std::string& type);
 
+/**
+ * LLM:
+ * @brief Check that a map does not contain empty keys.
+ * @param type_to_duration Map from type to duration.
+ * @param id ID of the task (for error reporting).
+ * @param type Type of the task (for error reporting).
+ * @param key_name Name of the key being checked (for error reporting).
+ * @throws InputException If an empty key is found.
+ */
 void check_no_empty_keys(const TypeToDurationMap& type_to_duration,
                          const Id id,
                          const std::string& type,
@@ -688,12 +834,34 @@ void check_no_empty_keys(const TypeToDurationMap& type_to_duration,
 using RawSolution = std::vector<RawRoute>;
 using TWSolution = std::vector<TWRoute>;
 
+/**
+ * LLM:
+ * @brief Format a solution from raw routes.
+ * @param input Problem input.
+ * @param raw_routes Vector of raw routes.
+ * @return Formatted Solution object.
+ */
 Solution format_solution(const Input& input, const RawSolution& raw_routes);
 
+/**
+ * LLM:
+ * @brief Format a single route from a TWRoute.
+ * @param input Problem input.
+ * @param tw_r Time-windowed route.
+ * @param unassigned_ranks Set of unassigned job ranks to update.
+ * @return Formatted Route object.
+ */
 Route format_route(const Input& input,
                    const TWRoute& tw_r,
                    std::unordered_set<Index>& unassigned_ranks);
 
+/**
+ * LLM:
+ * @brief Format a solution from time-windowed routes.
+ * @param input Problem input.
+ * @param tw_routes Vector of time-windowed routes.
+ * @return Formatted Solution object.
+ */
 Solution format_solution(const Input& input, const TWSolution& tw_routes);
 
 } // namespace vroom::utils
