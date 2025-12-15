@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
     libglpk-dev \
     glpk-utils \ 
     libasio-dev \
+    doxygen graphviz \
     python3 \
     && apt-get clean -y && rm -rf /var/lib/apt/lists/*
     

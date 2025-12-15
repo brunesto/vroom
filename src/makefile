@@ -1,12 +1,14 @@
 # This file is part of VROOM.
 #
-# Copyright (c) 2015-2025, Julien Coupey.
+# Copyright (c) 2015-2022, Julien Coupey.
 # All rights reserved (see LICENSE).
 
 # Variables.
 CXX ?= g++
+#USE_ROUTING ?= true
+#CXXFLAGS = -MMD -MP -I. -std=c++20 -Wextra -Wpedantic -Wall -O3 -DASIO_STANDALONE -DUSE_ROUTING=$(USE_ROUTING) -DNDEBUG
 USE_ROUTING ?= true
-CXXFLAGS = -MMD -MP -I. -std=c++20 -Wextra -Wpedantic -Wall -O3 -DASIO_STANDALONE -DUSE_ROUTING=$(USE_ROUTING)
+CXXFLAGS = -g -MMD -MP -I. -std=c++20 -Wextra -Wpedantic -Wall -O3 -DASIO_STANDALONE -DUSE_ROUTING=$(USE_ROUTING)
 LDLIBS = -lpthread
 
 # Using all cpp files in current directory.
