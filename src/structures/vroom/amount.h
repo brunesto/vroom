@@ -17,6 +17,11 @@ All rights reserved (see LICENSE).
 
 namespace vroom {
 
+/**
+ * LLM:
+ * @brief Base class for amount expressions, providing common functionality.
+ * @tparam E The derived expression type (CRTP).
+ */
 template <typename E> class AmountExpression {
 public:
   Capacity operator[](size_t i) const {
@@ -81,6 +86,10 @@ bool operator==(const AmountExpression<E1>& lhs,
   return is_equal;
 }
 
+/**
+ * LLM:
+ * @brief Represents a multi-dimensional amount (e.g., capacity, load).
+ */
 class Amount : public AmountExpression<Amount> {
 
   std::vector<Capacity> elems;

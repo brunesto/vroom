@@ -16,6 +16,10 @@ All rights reserved (see LICENSE).
 
 namespace vroom {
 
+/**
+ * LLM:
+ * @brief Holds information about the previous leg in a route.
+ */
 // Data structures holding information about current previous/next leg
 // in a route, as computed by TWRoute::previous_info and
 // TWRoute::next_info.
@@ -33,6 +37,10 @@ struct PreviousInfo {
   }
 };
 
+/**
+ * LLM:
+ * @brief Holds information about the next leg in a route.
+ */
 struct NextInfo {
   // Latest start date for next step.
   Duration latest;
@@ -43,6 +51,10 @@ struct NextInfo {
   }
 };
 
+/**
+ * LLM:
+ * @brief Helper struct to decide the order of job and break insertion.
+ */
 struct OrderChoice {
   const Input& input;
   bool add_job_first{false};
@@ -56,6 +68,12 @@ struct OrderChoice {
               const PreviousInfo& previous);
 };
 
+/**
+ * LLM:
+ * @brief Represents a route with time window constraints.
+ *
+ * Extends RawRoute to include time window validation and propagation.
+ */
 class TWRoute : public RawRoute {
 private:
   PreviousInfo previous_info(const Input& input,
@@ -87,12 +105,20 @@ public:
   Duration v_start;
   Duration v_end;
 
+  /**
+   * LLM:
+   * @brief Earliest and latest start times for jobs.
+   */
   // Margin for job at rank i in route: earliest[i] and latest[i]
   // store earliest and latest date. Those are potentially derived
   // from different time windows in multiple TW situations.
   std::vector<Duration> earliest;
   std::vector<Duration> latest;
 
+  /**
+   * LLM:
+   * @brief Action times for jobs.
+   */
   // action_time[i] stores the total time spent for job at rank i in
   // route. Based on previous location, can be either (setup +
   // service) or only service for the job.

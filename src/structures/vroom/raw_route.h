@@ -15,6 +15,10 @@ All rights reserved (see LICENSE).
 
 namespace vroom {
 
+/**
+ * LLM:
+ * @brief Represents a route in a raw format, storing indices of jobs and various load metrics.
+ */
 class RawRoute {
 private:
   Amount _zero;
@@ -62,8 +66,23 @@ public:
 
   std::vector<Index> route;
 
+  /**
+   * LLM:
+   * @brief Constructs a RawRoute.
+   *
+   * @param input The input data.
+   * @param i The index of the vehicle.
+   * @param amount_size The size of the amount vector.
+   */
   RawRoute(const Input& input, Index i, unsigned amount_size);
 
+  /**
+   * LLM:
+   * @brief Sets the route indices.
+   *
+   * @param input The input data.
+   * @param r The vector of job indices.
+   */
   void set_route(const Input& input, const std::vector<Index>& r);
 
   bool empty() const {
@@ -74,12 +93,39 @@ public:
     return route.size();
   }
 
+  /**
+   * LLM:
+   * @brief Updates the load amounts based on the current route.
+   *
+   * @param input The input data.
+   */
   void update_amounts(const Input& input);
 
+  /**
+   * LLM:
+   * @brief Checks if there is a pending delivery after a given rank.
+   *
+   * @param rank The rank to check after.
+   * @return True if there is a pending delivery, false otherwise.
+   */
   bool has_pending_delivery_after_rank(Index rank) const;
 
+  /**
+   * LLM:
+   * @brief Checks if there is a delivery after a given rank.
+   *
+   * @param rank The rank to check after.
+   * @return True if there is a delivery, false otherwise.
+   */
   bool has_delivery_after_rank(Index rank) const;
 
+  /**
+   * LLM:
+   * @brief Checks if there is a pickup up to a given rank.
+   *
+   * @param rank The rank to check up to.
+   * @return True if there is a pickup, false otherwise.
+   */
   bool has_pickup_up_to_rank(Index rank) const;
 
   const Amount& fwd_peak(Index rank) const {

@@ -16,6 +16,10 @@ All rights reserved (see LICENSE).
 
 namespace vroom {
 
+/**
+ * LLM:
+ * @brief Represents the evaluation of a solution or a move, including cost, duration, and distance.
+ */
 struct Eval {
   Cost cost;
   Duration duration;

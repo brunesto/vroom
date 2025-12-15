@@ -25,20 +25,72 @@ All rights reserved (see LICENSE).
 namespace vroom {
 
 // To easily differentiate variable types.
+/**
+ * LLM:
+ * @brief Type for unique identifiers.
+ */
 using Id = uint64_t;
+/**
+ * LLM:
+ * @brief Type for indices (e.g., matrix indices).
+ */
 using Index = uint16_t;
+/**
+ * LLM:
+ * @brief Type for user-provided costs.
+ */
 using UserCost = uint32_t;
+/**
+ * LLM:
+ * @brief Type for internal costs.
+ */
 using Cost = int64_t;
+/**
+ * LLM:
+ * @brief Type for user-provided durations.
+ */
 using UserDuration = uint32_t;
+/**
+ * LLM:
+ * @brief Type for internal durations.
+ */
 using Duration = int64_t;
+/**
+ * LLM:
+ * @brief Type for user-provided distances.
+ */
 using UserDistance = uint32_t;
+/**
+ * LLM:
+ * @brief Type for internal distances.
+ */
 using Distance = int64_t;
+/**
+ * LLM:
+ * @brief Type for coordinates (longitude/latitude).
+ */
 using Coordinate = double;
+/**
+ * LLM:
+ * @brief Type for capacity.
+ */
 using Capacity = int64_t;
+/**
+ * LLM:
+ * @brief Type for skills.
+ */
 using Skill = uint32_t;
+/**
+ * LLM:
+ * @brief Type for priority.
+ */
 using Priority = uint32_t;
 
 // Type helpers.
+/**
+ * LLM:
+ * @brief Structure to hold coordinates.
+ */
 struct Coordinates {
   Coordinate lon;
   Coordinate lat;

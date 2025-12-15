@@ -17,6 +17,13 @@ All rights reserved (see LICENSE).
 
 namespace vroom::utils {
 
+/**
+ * LLM:
+ * @brief Stores the state of the solution during the search process.
+ *
+ * This class maintains various precomputed values and indicators to speed up
+ * the evaluation of moves and local search operators.
+ */
 class SolutionState {
 private:
   const Input& _input;
@@ -26,6 +33,10 @@ public:
   // Store unassigned jobs.
   std::unordered_set<Index> unassigned;
 
+  /**
+   * LLM:
+   * @brief Forward evaluations.
+   */
   // fwd_evals[v][new_v][i] stores the total cost from job at rank 0
   // to job at rank i in the route for vehicle v, from the point of
   // view of a vehicle new_v. bwd_evals[v][new_v][i] stores the total
@@ -35,11 +46,19 @@ public:
   std::vector<std::vector<std::vector<Eval>>> fwd_evals;
   std::vector<std::vector<std::vector<Eval>>> bwd_evals;
 
+  /**
+   * LLM:
+   * @brief Service evaluations.
+   */
   // service_evals[v][new_v][i] stores the total service cost from job
   // at rank 0 to job at rank i (included) in the route for vehicle v,
   // from the point of view of a vehicle new_v.
   std::vector<std::vector<std::vector<Eval>>> service_evals;
 
+  /**
+   * LLM:
+   * @brief Forward and backward setup evaluations.
+   */
   // fwd_setup_evals[v][new_v][i] stores the total setup cost from job
   // at rank 0 to job at rank i (included) in the route for vehicle v,
   // from the point of view of vehicle new_v.
@@ -49,6 +68,10 @@ public:
   std::vector<std::vector<std::vector<Eval>>> fwd_setup_evals;
   std::vector<std::vector<std::vector<Eval>>> bwd_setup_evals;
 
+  /**
+   * LLM:
+   * @brief Forward and backward skill rank.
+   */
   // fwd_skill_rank[v1][v2] stores the maximum rank r for a step in
   // route for vehicle v1 such that v2 can handle all jobs from step 0
   // to r -- excluded -- in that route. bwd_skill_rank[v1][v2] stores
@@ -58,6 +81,10 @@ public:
   std::vector<std::vector<Index>> fwd_skill_rank;
   std::vector<std::vector<Index>> bwd_skill_rank;
 
+  /**
+   * LLM:
+   * @brief Forward and backward priority sum.
+   */
   // fwd_priority[v][i] stores the sum of priorities from job at rank
   // 0 to job at rank i (included) in the route for vehicle v.
   // bwd_priority[v][i] stores the sum of priorities from job at rank
@@ -65,6 +92,10 @@ public:
   std::vector<std::vector<Priority>> fwd_priority;
   std::vector<std::vector<Priority>> bwd_priority;
 
+  /**
+   * LLM:
+   * @brief Edge evaluations around node and node gains.
+   */
   // edge_evals_around_node[v][i] evaluates the sum of edges that
   // appear before and after job at rank i in route for vehicle v
   // (handling cases where those edges are absent or linked with
@@ -74,6 +105,10 @@ public:
   std::vector<std::vector<Eval>> edge_evals_around_node;
   std::vector<std::vector<Eval>> node_gains;
 
+  /**
+   * LLM:
+   * @brief Edge evaluations around edge and edge gains.
+   */
   // edge_evals_around_edge[v][i] evaluates the sum of edges that
   // appear before and after edge starting at rank i in route for
   // vehicle v (handling cases where those edges are absent or linked
@@ -83,10 +118,18 @@ public:
   std::vector<std::vector<Eval>> edge_evals_around_edge;
   std::vector<std::vector<Eval>> edge_gains;
 
+  /**
+   * LLM:
+   * @brief Pickup and delivery gains.
+   */
   // pd_gains[v][i] stores potential gain when removing pickup at rank
   // i in route for vehicle v along with it's associated delivery.
   std::vector<std::vector<Eval>> pd_gains;
 
+  /**
+   * LLM:
+   * @brief Matching delivery and pickup ranks.
+   */
   // If job at rank i in route for vehicle v is a pickup
   // (resp. delivery), then matching_delivery_rank[v][i]
   // (resp. matching_pickup_rank[v][i]) stores the rank of the
@@ -94,6 +137,10 @@ public:
   std::vector<std::vector<Index>> matching_delivery_rank;
   std::vector<std::vector<Index>> matching_pickup_rank;
 
+  /**
+   * LLM:
+   * @brief Cheapest job rank in routes.
+   */
   // cheapest_job_rank_in_routes_from[v1][v2][r1] stores the rank of
   // job in route v2 that minimize cost (as seen from the v2
   // perspective) from job at rank r1 in v1.

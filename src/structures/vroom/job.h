@@ -19,6 +19,10 @@ All rights reserved (see LICENSE).
 
 namespace vroom {
 
+/**
+ * LLM:
+ * @brief Represents a job to be performed, which can be a single stop, a pickup, or a delivery.
+ */
 struct Job {
   Location location;
   const Id id;
@@ -36,6 +40,23 @@ struct Job {
   std::vector<Duration> setups;
   std::vector<Duration> services;
 
+  /**
+   * LLM:
+   * @brief Constructor for regular one-stop job (JOB_TYPE::SINGLE).
+   *
+   * @param id The unique identifier of the job.
+   * @param location The location where the job is performed.
+   * @param default_setup The default setup duration.
+   * @param default_service The default service duration.
+   * @param delivery The amount to be delivered.
+   * @param pickup The amount to be picked up.
+   * @param skills The required skills for the job.
+   * @param priority The priority of the job.
+   * @param tws The time windows for the job.
+   * @param description A description of the job.
+   * @param setup_per_type Map of setup durations per vehicle type.
+   * @param service_per_type Map of service durations per vehicle type.
+   */
   // Constructor for regular one-stop job (JOB_TYPE::SINGLE).
   Job(Id id,
       const Location& location,
@@ -51,6 +72,23 @@ struct Job {
       const TypeToUserDurationMap& setup_per_type = TypeToUserDurationMap(),
       const TypeToUserDurationMap& service_per_type = TypeToUserDurationMap());
 
+  /**
+   * LLM:
+   * @brief Constructor for pickup and delivery jobs (JOB_TYPE::PICKUP or JOB_TYPE::DELIVERY).
+   *
+   * @param id The unique identifier of the job.
+   * @param type The type of the job (PICKUP or DELIVERY).
+   * @param location The location where the job is performed.
+   * @param default_setup The default setup duration.
+   * @param default_service The default service duration.
+   * @param amount The amount to be picked up or delivered.
+   * @param skills The required skills for the job.
+   * @param priority The priority of the job.
+   * @param tws The time windows for the job.
+   * @param description A description of the job.
+   * @param setup_per_type Map of setup durations per vehicle type.
+   * @param service_per_type Map of service durations per vehicle type.
+   */
   // Constructor for pickup and delivery jobs (JOB_TYPE::PICKUP or
   // JOB_TYPE::DELIVERY).
   Job(Id id,
@@ -71,6 +109,13 @@ struct Job {
     return location.index();
   }
 
+  /**
+   * LLM:
+   * @brief Checks if a given time is a valid start time for the job.
+   *
+   * @param time The time to check.
+   * @return True if the time is within any of the job's time windows, false otherwise.
+   */
   bool is_valid_start(Duration time) const;
 };
 

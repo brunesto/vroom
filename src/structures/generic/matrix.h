@@ -16,6 +16,11 @@ All rights reserved (see LICENSE).
 
 namespace vroom {
 
+/**
+ * LLM:
+ * @brief Represents a square matrix.
+ * @tparam T Type of the elements in the matrix.
+ */
 template <class T> class Matrix {
 
   std::size_t n;
@@ -31,6 +36,12 @@ public:
   Matrix(std::size_t n, T value) : n(n), data(n * n, value) {
   }
 
+  /**
+   * LLM:
+   * @brief Extract a sub-matrix based on a list of indices.
+   * @param indices List of indices to include in the sub-matrix.
+   * @return A new Matrix containing only the rows and columns specified by indices.
+   */
   Matrix<T> get_sub_matrix(const std::vector<Index>& indices) const {
     Matrix<T> sub_matrix(indices.size());
     for (std::size_t i = 0; i < indices.size(); ++i) {

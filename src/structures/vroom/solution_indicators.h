@@ -19,6 +19,10 @@ All rights reserved (see LICENSE).
 
 namespace vroom::utils {
 
+/**
+ * LLM:
+ * @brief Indicators to evaluate the quality of a solution.
+ */
 struct SolutionIndicators {
   Priority priority_sum{0};
   unsigned assigned{0};
@@ -29,6 +33,14 @@ struct SolutionIndicators {
 
   SolutionIndicators() = default;
 
+  /**
+   * LLM:
+   * @brief Constructs SolutionIndicators from a solution.
+   *
+   * @tparam Route The type of the route.
+   * @param input The input data.
+   * @param sol The solution (vector of routes).
+   */
   template <class Route>
   SolutionIndicators(const Input& input, const std::vector<Route>& sol)
     : SolutionIndicators() {

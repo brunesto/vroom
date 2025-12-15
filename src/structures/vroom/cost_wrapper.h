@@ -15,6 +15,10 @@ All rights reserved (see LICENSE).
 
 namespace vroom {
 
+/**
+ * LLM:
+ * @brief Wrapper for handling cost calculations based on duration and distance.
+ */
 class CostWrapper {
 private:
   const Cost _per_hour;
@@ -61,15 +65,36 @@ public:
             other.discrete_distance_cost_factor);
   }
 
+  /**
+   * LLM:
+   * @brief Get the duration between two locations.
+   * @param i Index of the origin.
+   * @param j Index of the destination.
+   * @return The duration.
+   */
   Duration duration(Index i, Index j) const {
     return discrete_duration_factor *
            static_cast<Duration>(duration_data[i * duration_matrix_size + j]);
   }
 
+  /**
+   * LLM:
+   * @brief Get the distance between two locations.
+   * @param i Index of the origin.
+   * @param j Index of the destination.
+   * @return The distance.
+   */
   Distance distance(Index i, Index j) const {
     return static_cast<Distance>(distance_data[i * distance_matrix_size + j]);
   }
 
+  /**
+   * LLM:
+   * @brief Get the cost between two locations.
+   * @param i Index of the origin.
+   * @param j Index of the destination.
+   * @return The cost.
+   */
   Cost cost(Index i, Index j) const {
     // If custom costs are provided, this boils down to scaling the
     // actual costs. If costs are computed from travel times and
@@ -81,6 +106,13 @@ public:
              static_cast<Cost>(distance_data[i * distance_matrix_size + j]);
   }
 
+  /**
+   * LLM:
+   * @brief Calculate user cost from user-provided duration and distance.
+   * @param d Duration.
+   * @param m Distance.
+   * @return The calculated user cost.
+   */
   UserCost user_cost_from_user_metrics(UserDuration d, UserDistance m) const;
 };
 

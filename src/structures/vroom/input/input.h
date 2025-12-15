@@ -32,6 +32,14 @@ using Servers =
 
 class VRP;
 
+/**
+ * LLM:
+ * @brief Main input class for the VRP problem.
+ *
+ * This class handles the loading and storage of all problem data, including
+ * vehicles, jobs, matrices, and configuration. It also manages the routing
+ * wrappers and problem solving process.
+ */
 class Input {
 private:
   TimePoint _start_loading{std::chrono::high_resolution_clock::now()};

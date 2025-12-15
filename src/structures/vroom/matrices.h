@@ -12,6 +12,10 @@ All rights reserved (see LICENSE).
 
 namespace vroom::routing {
 
+/**
+ * LLM:
+ * @brief Container for duration and distance matrices.
+ */
 struct Matrices {
   Matrix<UserDuration> durations;
   Matrix<UserDistance> distances;

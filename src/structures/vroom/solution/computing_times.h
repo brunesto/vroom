@@ -14,6 +14,10 @@ All rights reserved (see LICENSE).
 
 namespace vroom {
 
+/**
+ * LLM:
+ * @brief Stores computing times for different stages of the process.
+ */
 struct ComputingTimes {
   // Computing times in milliseconds.
   UserDuration loading{0};

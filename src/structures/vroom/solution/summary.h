@@ -17,6 +17,10 @@ All rights reserved (see LICENSE).
 
 namespace vroom {
 
+/**
+ * LLM:
+ * @brief Summarizes the solution metrics.
+ */
 struct Summary {
   UserCost cost{0};
   const unsigned routes;
@@ -36,6 +40,14 @@ struct Summary {
 
   Summary();
 
+  /**
+   * LLM:
+   * @brief Constructs a Summary.
+   *
+   * @param routes The number of routes.
+   * @param unassigned The number of unassigned jobs.
+   * @param zero_amount An empty amount object (used for initialization).
+   */
   Summary(unsigned routes, unsigned unassigned, const Amount& zero_amount);
 };
 

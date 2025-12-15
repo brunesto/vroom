@@ -25,6 +25,10 @@ All rights reserved (see LICENSE).
 
 namespace vroom {
 
+/**
+ * LLM:
+ * @brief Represents the costs associated with a vehicle.
+ */
 struct VehicleCosts {
   const Cost fixed;
   const Cost per_hour;
@@ -49,6 +53,10 @@ struct VehicleCosts {
   }
 };
 
+/**
+ * LLM:
+ * @brief Represents a vehicle in the routing problem.
+ */
 struct Vehicle {
   const Id id;
   std::optional<Location> start;
@@ -70,6 +78,27 @@ struct Vehicle {
   const std::string type_str;
   std::unordered_map<Id, Index> break_id_to_rank;
 
+  /**
+   * LLM:
+   * @brief Constructs a Vehicle.
+   *
+   * @param id The unique identifier of the vehicle.
+   * @param start The starting location of the vehicle.
+   * @param end The ending location of the vehicle.
+   * @param profile The routing profile (e.g., "car", "bike").
+   * @param capacity The capacity of the vehicle.
+   * @param skills The skills required by the vehicle.
+   * @param tw The time window of the vehicle.
+   * @param breaks The breaks associated with the vehicle.
+   * @param description A description of the vehicle.
+   * @param costs The costs associated with the vehicle.
+   * @param speed_factor The speed factor of the vehicle.
+   * @param max_tasks The maximum number of tasks the vehicle can perform.
+   * @param max_travel_time The maximum travel time for the vehicle.
+   * @param max_distance The maximum distance the vehicle can travel.
+   * @param input_steps The steps (jobs) assigned to the vehicle.
+   * @param type_str The type string of the vehicle.
+   */
   Vehicle(
     Id id,
     const std::optional<Location>& start,
@@ -90,12 +119,38 @@ struct Vehicle {
     const std::vector<VehicleStep>& input_steps = std::vector<VehicleStep>(),
     std::string type_str = NO_TYPE);
 
+  /**
+   * LLM:
+   * @brief Checks if the vehicle has a start location.
+   *
+   * @return True if the vehicle has a start location, false otherwise.
+   */
   bool has_start() const;
 
+  /**
+   * LLM:
+   * @brief Checks if the vehicle has an end location.
+   *
+   * @return True if the vehicle has an end location, false otherwise.
+   */
   bool has_end() const;
 
+  /**
+   * LLM:
+   * @brief Checks if the vehicle has the same start and end locations as another vehicle.
+   *
+   * @param other The other vehicle to compare with.
+   * @return True if the locations are the same, false otherwise.
+   */
   bool has_same_locations(const Vehicle& other) const;
 
+  /**
+   * LLM:
+   * @brief Checks if the vehicle has the same profile as another vehicle.
+   *
+   * @param other The other vehicle to compare with.
+   * @return True if the profiles are the same, false otherwise.
+   */
   bool has_same_profile(const Vehicle& other) const;
 
   bool cost_based_on_metrics() const;

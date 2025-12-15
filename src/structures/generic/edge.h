@@ -14,6 +14,11 @@ All rights reserved (see LICENSE).
 
 namespace vroom::utils {
 
+/**
+ * LLM:
+ * @brief Represents an edge in a graph with a weight.
+ * @tparam T Type of the weight.
+ */
 template <class T> class Edge {
 
 private:
@@ -22,6 +27,13 @@ private:
   T _weight;
 
 public:
+  /**
+   * LLM:
+   * @brief Construct a new Edge object.
+   * @param first_vertex Index of the first vertex.
+   * @param second_vertex Index of the second vertex.
+   * @param weight Weight of the edge.
+   */
   Edge(Index first_vertex, Index second_vertex, T weight);
 
   Index get_first_vertex() const {

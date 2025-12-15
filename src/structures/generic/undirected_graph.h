@@ -17,6 +17,11 @@ All rights reserved (see LICENSE).
 
 namespace vroom::utils {
 
+/**
+ * LLM:
+ * @brief Represents an undirected graph.
+ * @tparam T Type of the edge weights.
+ */
 template <class T> class UndirectedGraph {
 
 private:
@@ -29,8 +34,18 @@ private:
 public:
   UndirectedGraph();
 
+  /**
+   * LLM:
+   * @brief Construct a graph from an adjacency matrix.
+   * @param m The adjacency matrix.
+   */
   explicit UndirectedGraph(const Matrix<T>& m);
 
+  /**
+   * LLM:
+   * @brief Construct a graph from a list of edges.
+   * @param edges The list of edges.
+   */
   explicit UndirectedGraph(std::vector<Edge<T>>&& edges);
 
   std::size_t size() const;
