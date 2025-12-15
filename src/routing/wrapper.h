@@ -23,13 +23,48 @@ All rights reserved (see LICENSE).
 
 namespace vroom::routing {
 
+/**
+ * LLM: @brief Abstract base class for routing engine wrappers.
+ *
+ * Provides a common interface for different routing engines (OSRM, ORS,
+ * Valhalla, etc.) to compute distance/duration matrices and route geometries.
+ * Each derived class implements the specifics of communicating with its
+ * respective routing engine.
+ */
 class Wrapper {
 
 public:
   std::string profile;
 
+  /**
+   * LLM: @brief Computes complete distance and duration matrices for all
+   * location pairs.
+   *
+   * @param locs Vector of locations to compute matrices for.
+   * @return Matrices object containing distance and duration values for all
+   * location pairs.
+   * @throws RoutingException if routes cannot be found or routing engine
+   * returns an error.
+   */
   virtual Matrices get_matrices(const std::vector<Location>& locs) const = 0;
 
+  /**
+   * LLM: @brief Computes sparse matrices using individual route queries for
+   * each vehicle.
+   *
+   * Instead of computing a full NxN matrix, this method queries only the
+   * specific route segments needed by each vehicle. Processes vehicles in
+   * parallel for efficiency.
+   *
+   * @param locs Vector of all locations involved in the problem.
+   * @param vehicles Vector of vehicles with their assigned routes.
+   * @param jobs Vector of jobs to be performed.
+   * @param vehicles_geometry Output vector to store route geometries for each
+   * vehicle.
+   * @return Matrices object with only the required matrix entries populated.
+   * @throws RoutingException if routes cannot be found or routing engine
+   * returns an error.
+   */
   Matrices
   get_sparse_matrices(const std::vector<Location>& locs,
                       const std::vector<Vehicle>& vehicles,
@@ -110,11 +145,34 @@ public:
 
   // Updates matrices with data from a single route request and stores
   // corresponding route geometry.
+  /**
+   * LLM: @brief Updates matrix entries with routing data for a single vehicle
+   * route.
+   *
+   * Queries the routing engine for a specific sequence of locations and
+   * updates the corresponding matrix entries. Thread-safe for concurrent
+   * matrix updates.
+   *
+   * @param route_locs Ordered sequence of locations defining the route.
+   * @param m Matrices object to update with distance/duration values.
+   * @param matrix_m Mutex to synchronize concurrent matrix updates.
+   * @param vehicle_geometry Output string to store the encoded route geometry.
+   * @throws RoutingException if the route cannot be computed.
+   */
   virtual void update_sparse_matrix(const std::vector<Location>& route_locs,
                                     Matrices& m,
                                     std::mutex& matrix_m,
                                     std::string& vehicle_geometry) const = 0;
 
+  /**
+   * LLM: @brief Adds route geometry to a solution route.
+   *
+   * Queries the routing engine to obtain the encoded polyline geometry for
+   * the route's sequence of steps and stores it in the route object.
+   *
+   * @param route Route object to populate with geometry information.
+   * @throws RoutingException if the route geometry cannot be computed.
+   */
   virtual void add_geometry(Route& route) const = 0;
 
   virtual ~Wrapper() = default;
@@ -123,6 +181,21 @@ protected:
   explicit Wrapper(std::string profile) : profile(std::move(profile)) {
   }
 
+  /**
+   * LLM: @brief Validates routing results and identifies problematic locations.
+   *
+   * Analyzes unfound route counts to determine if any location has routing
+   * issues. Identifies the location with the most routing failures and throws
+   * an exception with detailed error information.
+   *
+   * @param locs Vector of all locations in the problem.
+   * @param nb_unfound_from_loc Count of unfound routes originating from each
+   * location.
+   * @param nb_unfound_to_loc Count of unfound routes terminating at each
+   * location.
+   * @throws RoutingException if any location has unfound routes, with details
+   * about the most problematic location.
+   */
   static void check_unfound(const std::vector<Location>& locs,
                             const std::vector<unsigned>& nb_unfound_from_loc,
                             const std::vector<unsigned>& nb_unfound_to_loc) {
