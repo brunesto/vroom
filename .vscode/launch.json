@@ -4,8 +4,7 @@
         {
             "name": "Debug vroom-in.json",
             "type": "cppdbg",
-            "request": "launch",
-            // TODO: Update this path to point to the binary created by 'make'
+            "request": "launch",            
             "program": "${workspaceFolder}/bin/vroom",
             "args": ["-i","${workspaceFolder}/vroom-in.json"],
             "stopAtEntry": false,
