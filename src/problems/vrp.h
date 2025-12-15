@@ -25,6 +25,17 @@ All rights reserved (see LICENSE).
 
 namespace vroom {
 
+/**
+ * LLM: @brief Initializes an empty solution with routes for all vehicles.
+ *
+ * Creates initial empty routes for each vehicle and populates them with
+ * user-provided steps if available in the input.
+ *
+ * @tparam Route Type of route object.
+ * @param input Input problem instance.
+ * @param init_assigned Output set of jobs assigned from initial routes.
+ * @return Vector of initialized routes for all vehicles.
+ */
 template <class Route>
 std::vector<Route> set_init_sol(const Input& input,
                                 std::unordered_set<Index>& init_assigned) {
@@ -42,6 +53,15 @@ std::vector<Route> set_init_sol(const Input& input,
   return init_sol;
 }
 
+/**
+ * LLM: @brief Context for managing parallel solution search processes.
+ *
+ * Stores shared data for multiple concurrent heuristic and local search runs,
+ * including initial solutions, unassigned jobs, and solution quality indicators.
+ * Thread-safe for parallel solution exploration.
+ *
+ * @tparam Route Type of route object.
+ */
 template <class Route> struct SolvingContext {
   std::unordered_set<Index> init_assigned;
   const std::vector<Route> init_sol;
@@ -80,6 +100,22 @@ template <class Route> struct SolvingContext {
   }
 };
 
+/**
+ * LLM: @brief Executes a single heuristic + local search run.
+ *
+ * Applies the specified heuristic to construct an initial solution, then
+ * improves it using local search. Handles time budget management and duplicate
+ * solution detection.
+ *
+ * @tparam Route Type of route object.
+ * @tparam LocalSearch Type of local search algorithm.
+ * @param input Input problem instance.
+ * @param p Heuristic parameters for this run.
+ * @param rank Index of this search run in the context.
+ * @param depth Local search depth.
+ * @param search_time Time budget for this search run.
+ * @param context Shared solving context.
+ */
 template <class Route, class LocalSearch>
 void run_single_search(const Input& input,
                        const HeuristicParameters& p,
@@ -177,11 +213,37 @@ void run_single_search(const Input& input,
   context.sol_indicators[rank] = ls.indicators();
 }
 
+/**
+ * LLM: @brief Abstract base class for Vehicle Routing Problem solvers.
+ *
+ * Provides the common framework for solving VRP variants (CVRP, VRPTW, TSP)
+ * using parallel multi-start heuristic search with local optimization. Derived
+ * classes specify the route type and local search algorithm appropriate for
+ * their specific problem constraints.
+ */
 class VRP {
   // Abstract class describing a VRP (vehicle routing problem).
 protected:
   const Input& _input;
 
+  /**
+   * LLM: @brief Solves the VRP using parallel multi-start heuristic search.
+   *
+   * Executes multiple heuristic runs in parallel, each followed by local search
+   * optimization, and returns the best solution found. Automatically selects
+   * appropriate heuristic parameters based on problem structure (homogeneous vs
+   * heterogeneous locations). Thread-safe with configurable parallelism.
+   *
+   * @tparam Route Type of route object specific to the VRP variant.
+   * @tparam LocalSearch Type of local search algorithm to apply.
+   * @param nb_searches Number of independent heuristic runs to perform.
+   * @param depth Local search exploration depth.
+   * @param nb_threads Maximum number of threads to use for parallel solving.
+   * @param timeout Optional time budget for the entire solving process.
+   * @param homogeneous_parameters Heuristic configurations for homogeneous problems.
+   * @param heterogeneous_parameters Heuristic configurations for heterogeneous problems.
+   * @return Best solution found across all search runs.
+   */
   template <class Route, class LocalSearch>
   Solution solve(
     unsigned nb_searches,
@@ -269,6 +331,19 @@ public:
 
   virtual ~VRP();
 
+  /**
+   * LLM: @brief Solves the VRP instance with specified search parameters.
+   *
+   * Pure virtual method to be implemented by derived classes (CVRP, VRPTW, TSP).
+   * Each variant provides its own route type and local search algorithm suited
+   * to its specific constraints and optimization goals.
+   *
+   * @param nb_searches Number of independent heuristic runs to perform.
+   * @param depth Local search exploration depth.
+   * @param nb_threads Maximum number of threads to use for parallel solving.
+   * @param timeout Optional time budget for the solving process.
+   * @return Optimized solution for the problem instance.
+   */
   virtual Solution solve(unsigned nb_searches,
                          unsigned depth,
                          unsigned nb_threads,
