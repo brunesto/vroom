@@ -7,6 +7,8 @@ All rights reserved (see LICENSE).
 
 */
 
+
+#include "utils/log.h"
 #include <algorithm>
 
 #include "algorithms/heuristics/heuristics.h"
@@ -491,6 +493,12 @@ Eval basic(const Input& input,
            INIT init,
            double lambda,
            SORT sort) {
+  DEBUG_LOG("basic()"<<
+            " nb_vehicles:"<<vehicles_ranks.size()<<
+            ", nb_unassigned:"<<unassigned.size()<<
+            ", init:"<<static_cast<int>(init)<<
+            ", lambda:"<<lambda<<
+            ", sort:"<<static_cast<int>(sort));
   // Ordering is based on vehicles description only so do not account
   // for initial routes if any.
   const auto nb_vehicles = vehicles_ranks.size();

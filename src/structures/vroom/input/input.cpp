@@ -7,7 +7,9 @@ All rights reserved (see LICENSE).
 
 */
 
+#include "utils/log.h"
 #include <algorithm>
+#include <cstddef>
 #include <mutex>
 #include <semaphore>
 #include <thread>
@@ -174,6 +176,7 @@ void Input::check_job(Job& job) {
 }
 
 void Input::run_basic_checks() const {
+  DEBUG_LOG("run_basic_checks()");
   if (vehicles.empty()) {
     throw InputException("No vehicle defined.");
   }
@@ -521,6 +524,7 @@ UserCost Input::check_cost_bound(const Matrix<UserCost>& matrix) const {
 }
 
 void Input::set_skills_compatibility() {
+   DEBUG_LOG("set_skills_compatibility() _has_skills:"<<_has_skills);
   // Default to no restriction when no skills are provided.
   _vehicle_to_job_compatibility = std::vector<
     std::vector<unsigned char>>(vehicles.size(),
@@ -544,6 +548,7 @@ void Input::set_skills_compatibility() {
 }
 
 void Input::set_extra_compatibility() {
+   DEBUG_LOG("set_extra_compatibility()");
   // Derive potential extra incompatibilities : jobs or shipments with
   // amount that does not fit into vehicle or that cannot be added to
   // an empty route for vehicle based on the timing constraints (when
@@ -598,6 +603,7 @@ void Input::set_extra_compatibility() {
 }
 
 void Input::set_vehicles_compatibility() {
+  DEBUG_LOG("set_vehicles_compatibility() vehicles:"<<vehicles.size());
   _vehicle_to_vehicle_compatibility =
     std::vector<std::vector<bool>>(vehicles.size(),
                                    std::vector<bool>(vehicles.size(), false));
@@ -617,6 +623,7 @@ void Input::set_vehicles_compatibility() {
 }
 
 void Input::set_vehicles_costs() {
+  DEBUG_LOG("set_vehicles_costs() vehicles:"<<vehicles.size());
   for (auto& vehicle : vehicles) {
     auto duration_m = _durations_matrices.find(vehicle.profile);
     assert(duration_m != _durations_matrices.end());
@@ -648,6 +655,7 @@ void Input::set_vehicles_costs() {
 }
 
 void Input::set_vehicles_max_tasks() {
+  DEBUG_LOG("set_vehicles_max_tasks() vehicles:"<<vehicles.size());
   if (const auto amount_size = get_amount_size();
       _has_jobs && !_has_shipments && amount_size > 0) {
     // For job-only instances where capacity restrictions apply:
@@ -772,6 +780,7 @@ void Input::set_vehicles_max_tasks() {
 }
 
 void Input::set_jobs_vehicles_evals() {
+  DEBUG_LOG("set_jobs_vehicles_evals() jobs:"<<jobs.size()<<" vehicles:"<<vehicles.size());
   // For a single job j, evals[j][v] evaluates fetching job j in an
   // empty route from vehicle at rank v. For a pickup job j,
   // evals[j][v] evaluates fetching job j **and** associated delivery
@@ -841,6 +850,8 @@ void Input::set_jobs_vehicles_evals() {
 
 void Input::set_jobs_durations_per_vehicle_type() {
   const auto nb_types = _vehicle_types.size();
+  DEBUG_LOG("set_jobs_durations_per_vehicle_type() nb_types:"<<nb_types<<" jobs:"<<jobs.size());
+
 
   for (auto& job : jobs) {
     // Populate duration vectors with default values at first.
@@ -1018,6 +1029,14 @@ routing::Matrices Input::get_matrices_by_profile(const std::string& profile,
 }
 
 void Input::set_matrices(unsigned nb_thread, bool sparse_filling) {
+  DEBUG_LOG("set_matrices()"<<
+            " durations matrices:"<<_durations_matrices.size()<<
+            ", distances matrices:"<<_distances_matrices.size()<<
+            ", costs matrices:"<<_costs_matrices.size()<<
+            ", profiles:"<<_profiles.size()<<
+            ", locations:"<<_locations.size()<<
+            ", threads: " <<nb_thread<<
+            ", sparse_filling:"<<sparse_filling);
   if ((!_durations_matrices.empty() || !_distances_matrices.empty() ||
        !_costs_matrices.empty()) &&
       !_has_custom_location_index) {
@@ -1191,6 +1210,7 @@ void Input::set_matrices(unsigned nb_thread, bool sparse_filling) {
 }
 
 std::unique_ptr<VRP> Input::get_problem() const {
+  DEBUG_LOG("get_problem() _has_TW:"<< _has_TW);
   if (_has_TW) {
     return std::make_unique<VRPTW>(*this);
   }
@@ -1211,6 +1231,7 @@ Solution Input::solve(const unsigned nb_searches,
                       const unsigned depth,
                       const unsigned nb_thread,
                       const Timeout& timeout) {
+  DEBUG_LOG("solve() nb_searches:"<<nb_searches<<" depth:"<<depth<<" nb_thread:"<<nb_thread);
   run_basic_checks();
 
   if (_has_initial_routes) {

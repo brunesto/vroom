@@ -22,7 +22,7 @@ All rights reserved (see LICENSE).
 #include "structures/vroom/eval.h"
 #include "structures/vroom/input/input.h"
 #include "structures/vroom/solution/solution.h"
-
+#include "utils/log.h"
 namespace vroom {
 
 /**
@@ -123,6 +123,8 @@ void run_single_search(const Input& input,
                        const unsigned depth,
                        const Timeout& search_time,
                        SolvingContext<Route>& context) {
+  DEBUG_LOG("run_single_search() rank:"<< rank<<" heuristic:"<< static_cast<int>(p.heuristic));
+
   const auto heuristic_start = utils::now();
 
   Eval h_eval;
@@ -252,6 +254,10 @@ protected:
     const Timeout& timeout,
     const std::vector<HeuristicParameters>& homogeneous_parameters,
     const std::vector<HeuristicParameters>& heterogeneous_parameters) const {
+
+    
+    DEBUG_LOG("solve() nb_searches:"<< nb_searches <<" nb_threads:"<< nb_threads);
+
     const auto& parameters = (_input.has_homogeneous_locations())
                                ? homogeneous_parameters
                                : heterogeneous_parameters;
@@ -269,6 +275,7 @@ protected:
     std::counting_semaphore<32> semaphore(actual_nb_threads);
 
     Timeout search_time;
+    DEBUG_LOG("timeout:"<< (timeout.has_value() ? "set" : "not set")); 
     if (timeout.has_value()) {
       // Max number of solving per thread.
       const auto dv = std::div(static_cast<long>(nb_searches),

@@ -7,6 +7,7 @@ All rights reserved (see LICENSE).
 
 */
 
+
 #include "problems/vrptw/vrptw.h"
 #include "algorithms/local_search/local_search.h"
 #include "problems/vrptw/operators/cross_exchange.h"
@@ -28,7 +29,7 @@ All rights reserved (see LICENSE).
 #include "problems/vrptw/operators/tsp_fix.h"
 #include "problems/vrptw/operators/two_opt.h"
 #include "problems/vrptw/operators/unassigned_exchange.h"
-
+#include "utils/log.h"
 namespace vroom {
 
 namespace vrptw {
@@ -138,6 +139,7 @@ const std::vector<HeuristicParameters> VRPTW::heterogeneous_parameters =
    HeuristicParameters(HEURISTIC::DYNAMIC, INIT::FURTHEST, 1.1)};
 
 VRPTW::VRPTW(const Input& input) : VRP(input) {
+  DEBUG_LOG("VRPTW() constructor");
 }
 
 Solution VRPTW::solve(const unsigned nb_searches,

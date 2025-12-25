@@ -7,6 +7,8 @@ All rights reserved (see LICENSE).
 
 */
 
+#include "utils/log.h"
+
 #include <algorithm>
 
 #include "../include/rapidjson/include/rapidjson/document.h"
@@ -551,6 +553,8 @@ template <class T> inline Matrix<T> get_matrix(rapidjson::Value& m) {
 }
 
 void parse(Input& input, const std::string& input_str, bool geometry) {
+  DEBUG_LOG("parse()");
+
   // Input json object.
   rapidjson::Document json_input;
 

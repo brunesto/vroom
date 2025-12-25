@@ -11,6 +11,11 @@ All rights reserved (see LICENSE).
 #include <iostream>
 #include <sstream>
 
+
+#include "utils/log.h"
+
+
+
 #if USE_LIBOSRM
 #include "osrm/exception.hpp"
 #endif
@@ -32,6 +37,8 @@ int main(int argc, char** argv) {
   std::string limit_arg;
   std::string output_file;
   unsigned exploration_level;
+
+  INFO_LOG("started " << argc);
 
   cxxopts::Options options("vroom",
                            "VROOM Copyright (C) 2015-2025, Julien Coupey\n"
