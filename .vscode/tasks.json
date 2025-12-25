@@ -6,7 +6,7 @@
             "options": {
                 "cwd": "${workspaceFolder}/src" // Set working directory to where the makefile is located
             },
-            "command": "make",       // The command to run in the terminal
+            "command": "bear -- make",       // The command to run in the terminal
             "args": [],              // Add target names here if needed, e.g., ["all"]
             "group": {
                 "kind": "build",

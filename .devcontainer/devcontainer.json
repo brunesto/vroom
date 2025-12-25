@@ -3,12 +3,17 @@
   "build": {
     "dockerfile": "Dockerfile"
   },
+  "runArgs": [
+     "--cpus=12.0",
+     "--net=host"
+  ],
   "customizations": {
     "vscode": {
       "extensions": [
-        "ms-vscode.cpptools",       // C/C++ Intellisense & Debugging
-        "ms-vscode.cmake-tools",    // CMake support (optional but recommended)
-        "vadimcn.vscode-lldb"       // CodeLLDB (often better than default GDB support)
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools",
+        "vadimcn.vscode-lldb",
+        "llvm-vs-code-extensions.vscode-clangd"
       ]
     }
   },

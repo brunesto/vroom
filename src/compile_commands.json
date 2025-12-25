@@ -1,0 +1,163 @@
+[
+  {
+    "arguments": [
+      "/usr/local/bin/g++",
+      "-I.",
+      "-std=c++20",
+      "-Wextra",
+      "-Wpedantic",
+      "-Wall",
+      "-O0",
+      "-g",
+      "-DASIO_STANDALONE",
+      "-DUSE_ROUTING=true",
+      "-D",
+      "USE_LIBGLPK=true",
+      "-c",
+      "-o",
+      "algorithms/heuristics/heuristics.o",
+      "algorithms/heuristics/heuristics.cpp"
+    ],
+    "directory": "/workspaces/vroom/src",
+    "file": "/workspaces/vroom/src/algorithms/heuristics/heuristics.cpp",
+    "output": "/workspaces/vroom/src/algorithms/heuristics/heuristics.o"
+  },
+  {
+    "arguments": [
+      "/usr/local/bin/g++",
+      "-I.",
+      "-std=c++20",
+      "-Wextra",
+      "-Wpedantic",
+      "-Wall",
+      "-O0",
+      "-g",
+      "-DASIO_STANDALONE",
+      "-DUSE_ROUTING=true",
+      "-D",
+      "USE_LIBGLPK=true",
+      "-c",
+      "-o",
+      "problems/vrp.o",
+      "problems/vrp.cpp"
+    ],
+    "directory": "/workspaces/vroom/src",
+    "file": "/workspaces/vroom/src/problems/vrp.cpp",
+    "output": "/workspaces/vroom/src/problems/vrp.o"
+  },
+  {
+    "arguments": [
+      "/usr/local/bin/g++",
+      "-I.",
+      "-std=c++20",
+      "-Wextra",
+      "-Wpedantic",
+      "-Wall",
+      "-O0",
+      "-g",
+      "-DASIO_STANDALONE",
+      "-DUSE_ROUTING=true",
+      "-D",
+      "USE_LIBGLPK=true",
+      "-c",
+      "-o",
+      "problems/cvrp/cvrp.o",
+      "problems/cvrp/cvrp.cpp"
+    ],
+    "directory": "/workspaces/vroom/src",
+    "file": "/workspaces/vroom/src/problems/cvrp/cvrp.cpp",
+    "output": "/workspaces/vroom/src/problems/cvrp/cvrp.o"
+  },
+  {
+    "arguments": [
+      "/usr/local/bin/g++",
+      "-I.",
+      "-std=c++20",
+      "-Wextra",
+      "-Wpedantic",
+      "-Wall",
+      "-O0",
+      "-g",
+      "-DASIO_STANDALONE",
+      "-DUSE_ROUTING=true",
+      "-D",
+      "USE_LIBGLPK=true",
+      "-c",
+      "-o",
+      "problems/tsp/tsp.o",
+      "problems/tsp/tsp.cpp"
+    ],
+    "directory": "/workspaces/vroom/src",
+    "file": "/workspaces/vroom/src/problems/tsp/tsp.cpp",
+    "output": "/workspaces/vroom/src/problems/tsp/tsp.o"
+  },
+  {
+    "arguments": [
+      "/usr/local/bin/g++",
+      "-I.",
+      "-std=c++20",
+      "-Wextra",
+      "-Wpedantic",
+      "-Wall",
+      "-O0",
+      "-g",
+      "-DASIO_STANDALONE",
+      "-DUSE_ROUTING=true",
+      "-D",
+      "USE_LIBGLPK=true",
+      "-c",
+      "-o",
+      "problems/vrptw/vrptw.o",
+      "problems/vrptw/vrptw.cpp"
+    ],
+    "directory": "/workspaces/vroom/src",
+    "file": "/workspaces/vroom/src/problems/vrptw/vrptw.cpp",
+    "output": "/workspaces/vroom/src/problems/vrptw/vrptw.o"
+  },
+  {
+    "arguments": [
+      "/usr/local/bin/g++",
+      "-I.",
+      "-std=c++20",
+      "-Wextra",
+      "-Wpedantic",
+      "-Wall",
+      "-O0",
+      "-g",
+      "-DASIO_STANDALONE",
+      "-DUSE_ROUTING=true",
+      "-D",
+      "USE_LIBGLPK=true",
+      "-c",
+      "-o",
+      "problems/cvrp/operators/tsp_fix.o",
+      "problems/cvrp/operators/tsp_fix.cpp"
+    ],
+    "directory": "/workspaces/vroom/src",
+    "file": "/workspaces/vroom/src/problems/cvrp/operators/tsp_fix.cpp",
+    "output": "/workspaces/vroom/src/problems/cvrp/operators/tsp_fix.o"
+  },
+  {
+    "arguments": [
+      "/usr/local/bin/g++",
+      "-I.",
+      "-std=c++20",
+      "-Wextra",
+      "-Wpedantic",
+      "-Wall",
+      "-O0",
+      "-g",
+      "-DASIO_STANDALONE",
+      "-DUSE_ROUTING=true",
+      "-D",
+      "USE_LIBGLPK=true",
+      "-c",
+      "-o",
+      "structures/vroom/input/input.o",
+      "structures/vroom/input/input.cpp"
+    ],
+    "directory": "/workspaces/vroom/src",
+    "file": "/workspaces/vroom/src/structures/vroom/input/input.cpp",
+    "output": "/workspaces/vroom/src/structures/vroom/input/input.o"
+  }
+]
