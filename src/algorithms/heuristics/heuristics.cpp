@@ -559,7 +559,9 @@ Eval basic(const Input& input,
     // Going trough vehicles backward from second to last.
     const auto v = nb_vehicles - 2 - rev_v;
 
-    bool all_compatible_jobs_later_undoable = true;
+    
+    bool all_compatible_jobs_later_undoable = true; // purpose is to determine if all jobs that are compatible with the current vehicle v become "impossible" (infinite cost) for all subsequent vehicles.
+    // BRUNO: compute regrets AND check all_compatible_jobs_later_undoable    
     for (const auto j : unassigned) {
       regrets[v][j] =
         std::min(regrets[v + 1][j], (evals[j][vehicles_ranks[v + 1]]).cost);
