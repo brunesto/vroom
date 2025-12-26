@@ -375,6 +375,7 @@ void Input::add_vehicle(const Vehicle& vehicle) {
   _has_initial_routes = _has_initial_routes || !current_v.steps.empty();
 
   // Check for homogeneous locations among vehicles.
+  // BRUNO: it only tests first and last vehicle, why?
   if (vehicles.size() > 1) {
     _homogeneous_locations =
       _homogeneous_locations &&

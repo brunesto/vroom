@@ -33,10 +33,15 @@ inline void seed_route(const Input& input,
   // Initialize current route with the "best" valid job.
   bool init_ok = false;
 
+  // LLM: Used when init is HIGHER_AMOUNT. Tracks the maximum amount (pickup or delivery) among valid jobs to find the one with the highest demand.
   Amount higher_amount(input.zero_amount());
+  // LLM: Used when init is FURTHEST. Tracks the maximum cost to reach a job from the vehicle's start/end to find the furthest job.
   Cost furthest_cost = 0;
+  // LLM: Used when init is NEAREST. Tracks the minimum cost to reach a job from the vehicle's start/end to find the nearest job.
   Cost nearest_cost = std::numeric_limits<Cost>::max();
+  // LLM: Used when init is EARLIEST_DEADLINE. Tracks the earliest deadline among valid jobs to prioritize urgent tasks.
   Duration earliest_deadline = std::numeric_limits<Duration>::max();
+  // LLM: Stores the index of the job that best matches the initialization criteria (highest amount, furthest, nearest, or earliest deadline).
   Index best_job_rank = 0;
   for (const auto job_rank : unassigned) {
     const auto& current_job = input.jobs[job_rank];
@@ -141,8 +146,11 @@ inline void seed_route(const Input& input,
 
 template <class Route> struct UnassignedCosts {
   const Vehicle& vehicle;
+  // LLM: Stores the maximum cost of any edge in the current route. Used to normalize insertion costs when calculating lower bounds.
   Cost max_edge_cost;
+  // LLM: Stores the minimum cost to travel from any point in the current route (including start) to each unassigned job.
   std::vector<Cost> min_route_to_unassigned;
+  // LLM: Stores the minimum cost to travel from each unassigned job to any point in the current route (including end).
   std::vector<Cost> min_unassigned_to_route;
 
   UnassignedCosts(const Input& input,
@@ -261,6 +269,7 @@ inline Eval fill_route(const Input& input,
   bool keep_going = true;
   while (keep_going) {
     keep_going = false;
+    // LLM: Tracks the lowest insertion cost found so far in the current iteration. This cost includes the regret penalty.
     double best_cost = std::numeric_limits<double>::max();
     Index best_job_rank = 0;
     Index best_r = 0;
@@ -294,9 +303,10 @@ inline Eval fill_route(const Input& input,
           const auto current_eval =
             utils::addition_eval(input, job_rank, vehicle, route.route, r);
 
+          // LLM: Calculates the cost of inserting the job at rank r. It subtracts the weighted regret to prioritize jobs that are expensive to assign to other vehicles.
           const double current_cost =
             static_cast<double>(current_eval.cost) -
-            lambda * static_cast<double>(regrets[job_rank]);
+            (lambda * static_cast<double>(regrets[job_rank]));
 
           if (current_cost < best_cost &&
               (vehicle.ok_for_range_bounds(route_eval + current_eval)) &&
@@ -393,6 +403,7 @@ inline Eval fill_route(const Input& input,
               current_eval = p_add + d_adds[delivery_r];
             }
 
+            // LLM: Calculates the cost of inserting the pickup and delivery pair. It subtracts the weighted regret to prioritize difficult jobs.
             const double current_cost =
               current_eval.cost -
               lambda * static_cast<double>(regrets[job_rank]);
@@ -528,15 +539,18 @@ Eval basic(const Input& input,
 
   const auto& evals = input.jobs_vehicles_evals();
 
+  // LLM: Stores the regret value for each job and vehicle. regrets[v][j] is the cost of assigning job j to the best alternative vehicle after vehicle v.
   // regrets[v][j] holds the min cost for reaching job j in an empty
   // route across all remaining vehicles **after** vehicle at rank v
   // in vehicles_ranks. Regrets are only computed for available
   // vehicles and unassigned jobs, but are based on empty routes
   // evaluations so do not account for initial routes if any.
+
   std::vector<std::vector<Cost>> regrets(nb_vehicles,
                                          std::vector<Cost>(input.jobs.size()));
 
   // Use own cost for last vehicle regret values.
+  // BRUNO: regret is used as a heuristic to prioritize assigning jobs that would be "expensive" or difficult to assign to other vehicles later on.
   for (const auto j : unassigned) {
     regrets.back()[j] = evals[j][vehicles_ranks.back()].cost;
   }
@@ -606,8 +620,10 @@ Eval dynamic_vehicle_choice(const Input& input,
     // (resp. second min cost) of picking the job in an empty route
     // for any remaining vehicle. Evaluation are based on empty routes
     // so do not account for initial routes if any.
+    // LLM: Stores the minimum cost to serve each unassigned job using any of the remaining vehicles.
     std::vector<Cost> jobs_min_costs(input.jobs.size(),
                                      input.get_cost_upper_bound());
+    // LLM: Stores the second minimum cost to serve each unassigned job using any of the remaining vehicles. Used to calculate regret.
     std::vector<Cost> jobs_second_min_costs(input.jobs.size(),
                                             input.get_cost_upper_bound());
     for (const auto j : unassigned) {
@@ -626,6 +642,7 @@ Eval dynamic_vehicle_choice(const Input& input,
     // Pick vehicle that has the biggest number of compatible
     // unassigned jobs closest to him than to any other different
     // vehicle still available.
+    // LLM: Counts how many unassigned jobs are "closest" (have minimum cost) to each vehicle. Used to select the next vehicle to process.
     std::vector<unsigned> closest_jobs_count(input.vehicles.size(), 0);
     for (const auto j : unassigned) {
       for (const auto v : vehicles_ranks) {
@@ -676,6 +693,7 @@ Eval dynamic_vehicle_choice(const Input& input,
     // for available vehicles and unassigned jobs, but are based on
     // empty routes evaluations so do not account for initial routes
     // if any.
+    // LLM: Stores the regret cost for each unassigned job. This is the cost of the best alternative vehicle if the current vehicle doesn't take the job.
     std::vector<Cost> regrets(input.jobs.size(), input.get_cost_upper_bound());
 
     bool all_compatible_jobs_later_undoable = true;

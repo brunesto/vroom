@@ -107,11 +107,13 @@ template <class Route> struct SolvingContext {
  * improves it using local search. Handles time budget management and duplicate
  * solution detection.
  *
+ * BRUNO: here "rank" is used as an id (index in the list of searches) and does not have scoring connnotations
+ * 
  * @tparam Route Type of route object.
  * @tparam LocalSearch Type of local search algorithm.
  * @param input Input problem instance.
  * @param p Heuristic parameters for this run.
- * @param rank Index of this search run in the context.
+ * @param rank Index of this search run in the context. 
  * @param depth Local search depth.
  * @param search_time Time budget for this search run.
  * @param context Shared solving context.
