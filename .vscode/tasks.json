@@ -4,10 +4,10 @@
             "label": "make build",   // Name of the task, referenced in launch.json
             "type": "shell",
             "options": {
-                "cwd": "${workspaceFolder}/src" // Set working directory to where the makefile is located
+                "cwd": "${workspaceFolder}/src" 
             },
-            "command": "bear -- make",       // The command to run in the terminal
-            "args": [],              // Add target names here if needed, e.g., ["all"]
+            "command": "make",       // do NOT run bear here, as it would empty compile_commands.json
+            "args": [],              
             "group": {
                 "kind": "build",
                 "isDefault": true
