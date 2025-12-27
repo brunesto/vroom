@@ -35,6 +35,9 @@ TWRoute::TWRoute(const Input& input, Index v, unsigned amount_size)
   Amount fwd_smallest_margin = utils::max_amount(amount_size);
   Amount bwd_smallest_margin = utils::max_amount(amount_size);
 
+  // LLM:Initialize break earliest dates and forward load margins.
+  // LLM:Iterate through breaks to set their earliest start times based on previous breaks
+  // LLM:and vehicle start time. Also track the tightest load margin encountered so far.
   for (Index i = 0; i < breaks.size(); ++i) {
     const auto& b = breaks[i];
     const auto b_tw = std::ranges::find_if(b.tws, [&](const auto& tw) {
@@ -60,6 +63,9 @@ TWRoute::TWRoute(const Input& input, Index v, unsigned amount_size)
   }
 
   Duration next_latest = v_end;
+  // LLM:Initialize break latest dates and backward load margins.
+  // LLM:Iterate backwards through breaks to set their latest start times based on subsequent breaks
+  // LLM:and vehicle end time. Also track the tightest load margin from the end.
   for (Index r_i = 0; r_i < breaks.size(); ++r_i) {
     const Index i = breaks.size() - 1 - r_i;
     const auto& b = breaks[i];
@@ -104,6 +110,8 @@ PreviousInfo TWRoute::previous_info(const Input& input,
   const auto& j = input.jobs[job_rank];
 
   PreviousInfo previous(v_start, 0);
+  // LLM:Determine the state (earliest completion time, location) of the previous step
+  // LLM:in the route to calculate travel time to the current job.
   if (rank > 0) {
     const auto& previous_job = input.jobs[route[rank - 1]];
     previous.earliest = earliest[rank - 1] + action_time[rank - 1];
@@ -126,6 +134,8 @@ NextInfo TWRoute::next_info(const Input& input,
   const auto& j = input.jobs[job_rank];
 
   NextInfo next(v_end, 0);
+  // LLM:Determine the state (latest start time) of the next step in the route
+  // LLM:to calculate travel time from the current job.
   if (rank == route.size()) {
     if (has_end) {
       next.travel = v.duration(j.index(), v.end.value().index());
@@ -144,6 +154,9 @@ void TWRoute::fwd_update_earliest_from(const Input& input, Index rank) {
   Duration current_earliest = earliest[rank];
   bool handle_last_breaks = true;
 
+  // LLM:Propagate earliest start times forward from the given rank.
+  // LLM:This involves updating earliest times for subsequent jobs and any breaks
+  // LLM:that occur between them.
   for (Index i = rank + 1; i < route.size(); ++i) {
     const auto& next_j = input.jobs[route[i]];
     Duration remaining_travel_time =
@@ -154,6 +167,8 @@ void TWRoute::fwd_update_earliest_from(const Input& input, Index rank) {
     assert(breaks_at_rank[i] <= breaks_counts[i]);
     Index break_rank = breaks_counts[i] - breaks_at_rank[i];
 
+    // LLM:Process breaks scheduled before the next job.
+    // LLM:Adjust travel time if breaks consume some of the travel duration.
     for (Index r = 0; r < breaks_at_rank[i]; ++r, ++break_rank) {
       const auto& b = v.breaks[break_rank];
 
@@ -217,6 +232,7 @@ void TWRoute::fwd_update_earliest_from(const Input& input, Index rank) {
     assert(breaks_at_rank[i] <= breaks_counts[i]);
     Index break_rank = breaks_counts[i] - breaks_at_rank[i];
 
+    // LLM:Process any remaining breaks scheduled after the last job.
     for (Index r = 0; r < breaks_at_rank[i]; ++r, ++break_rank) {
       const auto& b = v.breaks[break_rank];
       current_earliest += previous_action_time;
@@ -253,6 +269,9 @@ void TWRoute::bwd_update_latest_from(const Input& input, Index rank) {
   Duration current_latest = latest[rank];
   bool handle_first_breaks = true;
 
+  // LLM:Propagate latest start times backward from the given rank.
+  // LLM:This involves updating latest times for preceding jobs and any breaks
+  // LLM:that occur between them.
   for (Index next_i = rank; next_i > 0; --next_i) {
     const auto& previous_j = input.jobs[route[next_i - 1]];
     Duration remaining_travel_time =
@@ -262,6 +281,8 @@ void TWRoute::bwd_update_latest_from(const Input& input, Index rank) {
     assert(breaks_at_rank[next_i] <= breaks_counts[next_i]);
     Index break_rank = breaks_counts[next_i];
 
+    // LLM:Process breaks scheduled before the current job (in backward iteration).
+    // LLM:Adjust travel time if breaks consume some of the travel duration.
     for (Index r = 0; r < breaks_at_rank[next_i]; ++r) {
       --break_rank;
 
@@ -320,7 +341,7 @@ void TWRoute::bwd_update_latest_from(const Input& input, Index rank) {
 
     assert(breaks_at_rank[next_i] <= breaks_counts[next_i]);
     Index break_rank = breaks_counts[next_i];
-
+    // LLM:Process any remaining breaks scheduled before the first job.
     for (Index r = 0; r < breaks_at_rank[next_i]; ++r) {
       --break_rank;
       const auto& b = v.breaks[break_rank];
@@ -350,6 +371,8 @@ void TWRoute::update_last_latest_date(const Input& input) {
 
   // Latest date for breaks before end.
   Index break_rank = breaks_counts[route.size()];
+  // LLM:Calculate the latest possible start times for breaks occurring after the last job
+  // LLM:but before the route end.
   for (Index r = 0; r < breaks_at_rank[route.size()]; ++r) {
     --break_rank;
     const auto& b = v.breaks[break_rank];
@@ -394,6 +417,8 @@ void TWRoute::update_last_latest_date(const Input& input) {
 void TWRoute::fwd_update_action_time_from(const Input& input, Index rank) {
   Index current_index = input.jobs[route[rank]].index();
 
+  // LLM:Update action times (setup + service) for jobs starting from the given rank.
+  // LLM:Setup time is included only if the location changes from the previous job.
   for (Index i = rank + 1; i < route.size(); ++i) {
     const auto& next_j = input.jobs[route[i]];
     const auto next_index = next_j.index();
@@ -418,6 +443,9 @@ void TWRoute::fwd_update_breaks_load_margin_from(const Input& input,
       ? utils::max_amount(input.get_amount_size())
       : fwd_smallest_breaks_load_margin[breaks_counts[rank] - 1];
 
+  // LLM:Update forward load margins for breaks starting from the given rank.
+  // LLM:This ensures that for each break, we know the minimum margin available
+  // LLM:between the current load and the break's max load capacity up to that point.
   for (Index i = rank; i <= route.size(); ++i) {
     if (breaks_at_rank[i] != 0) {
       // Update for breaks right before job at rank i.
@@ -453,6 +481,9 @@ void TWRoute::bwd_update_breaks_load_margin_from(const Input& input,
                         ? utils::max_amount(input.get_amount_size())
                         : bwd_smallest_breaks_load_margin[breaks_counts[rank]];
 
+  // LLM:Update backward load margins for breaks starting from the given rank and going backwards.
+  // LLM:This ensures that for each break, we know the minimum margin available
+  // LLM:between the current load and the break's max load capacity from that point onwards.
   for (Index bwd_i = 0; bwd_i <= rank; ++bwd_i) {
     const auto i = rank - bwd_i;
     if (breaks_at_rank[i] != 0) {
@@ -485,11 +516,13 @@ OrderChoice::OrderChoice(const Input& input,
                          const Break& b,
                          const PreviousInfo& previous)
   : input(input),
+    // LLM:Find the first valid time window for the job that allows arrival after the previous step.
     j_tw(std::ranges::find_if(input.jobs[job_rank].tws,
                               [&](const auto& tw) {
                                 return previous.earliest + previous.travel <=
                                        tw.end;
                               })),
+    // LLM:Find the first valid time window for the break that allows arrival after the previous step.
     b_tw(std::ranges::find_if(b.tws, [&](const auto& tw) {
       return previous.earliest <= tw.end;
     })) {
@@ -517,6 +550,7 @@ OrderChoice TWRoute::order_choice(const Input& input,
   Duration break_then_job_end;
 
   // Try putting job first then break.
+  // LLM:Calculate the earliest end time if the job is performed before the break.
   const Duration earliest_job_end =
     std::max(previous.earliest + previous.travel, oc.j_tw->start) +
     job_action_time;
@@ -533,6 +567,8 @@ OrderChoice TWRoute::order_choice(const Input& input,
   }
 
   Duration travel_after_break = next.travel;
+  // LLM:Adjust travel time after the break if there is a waiting time (margin)
+  // LLM:between the job completion and the break start.
   if (earliest_job_end < new_b_tw->start) {
     job_then_break_margin = new_b_tw->start - earliest_job_end;
     if (job_then_break_margin < travel_after_break) {
@@ -561,6 +597,7 @@ OrderChoice TWRoute::order_choice(const Input& input,
   }
 
   // Try putting break first then job.
+  // LLM:Check if putting the break first is valid with respect to load constraints.
   if (check_max_load && !b.is_valid_for_load(current_load)) {
     // Not doable based on max_load, only option is to choose job
     // first.
@@ -571,6 +608,8 @@ OrderChoice TWRoute::order_choice(const Input& input,
   travel_after_break = previous.travel;
   Duration earliest_job_start = previous.earliest;
 
+  // LLM:Calculate the earliest start time for the job if the break is performed first.
+  // LLM:Adjust travel time if there is a waiting time before the break.
   if (previous.earliest < oc.b_tw->start) {
     if (const auto margin = oc.b_tw->start - previous.earliest;
         margin < travel_after_break) {
@@ -712,6 +751,9 @@ bool TWRoute::is_valid_addition_for_tw(const Input& input,
 
   // Value initialization differ whether there are actually jobs added
   // or not.
+  // LLM: Initialize the state (earliest start, location) for the insertion point
+  // LLM: and the state (latest start, travel) for the subsequent step.
+  // LLM: This handles both insertion of new jobs and removal of existing jobs (when first_job == last_job).
   if (first_job < last_job) {
     current = previous_info(input, *first_job, first_rank);
     next = next_info(input, *(last_job - 1), last_rank);
@@ -757,6 +799,8 @@ bool TWRoute::is_valid_addition_for_tw(const Input& input,
   // is lowered based on removed range.
   Amount current_load;
 
+  // LLM:Check if the initial load at the insertion point is valid with respect to
+  // LLM:break max load constraints, considering the delivery amount of the new jobs.
   if (check_max_load) {
     const auto previous_init_load =
       (route.empty()) ? input.zero_amount() : load_at_step(first_rank);
@@ -776,6 +820,8 @@ bool TWRoute::is_valid_addition_for_tw(const Input& input,
   // Propagate earliest dates for all jobs and breaks in their
   // respective addition ranges.
   auto current_job = first_job;
+  // LLM:Iterate through the new jobs and any breaks that need to be scheduled.
+  // LLM:Determine the order of jobs and breaks and check for time window and load validity.
   while (current_job != last_job || current_break != last_break) {
     if (current_job == last_job) {
       // Compute earliest end date for break after last inserted jobs.
@@ -1005,6 +1051,9 @@ void TWRoute::replace(const Input& input,
 
   // Value initialization differ whether there are actually jobs added
   // or not.
+  // LLM:Initialize the state (earliest start, location) for the insertion point
+  // LLM:and the state (latest start, travel) for the subsequent step.
+  // LLM:This handles both insertion of new jobs and removal of existing jobs (when first_job == last_job).
   if (first_job < last_job) {
     current = previous_info(input, *first_job, first_rank);
     next = next_info(input, *(last_job - 1), last_rank);
@@ -1058,6 +1107,9 @@ void TWRoute::replace(const Input& input,
   // Update all break load margins prior to modified range.
   assert(current_break == 0 ||
          delta_delivery <= fwd_smallest_breaks_load_margin[current_break - 1]);
+  // LLM:Update forward load margins for breaks occurring before the modified range.
+  // LLM:This is necessary because the delivery amount change affects the load profile
+  // LLM:for all preceding breaks.
   for (std::size_t i = 0; i < current_break; ++i) {
     assert(delta_delivery <= fwd_smallest_breaks_load_margin[i]);
 
@@ -1087,6 +1139,8 @@ void TWRoute::replace(const Input& input,
   // overwrite old values. Otherwise they may happen to be identical
   // to new computed values and stop propagation inside
   // fwd_update_earliest_from and bwd_update_latest_from below.
+  // LLM:Resize and update the route and associated data vectors (earliest, latest, action_time, etc.)
+  // LLM:to accommodate the new jobs or removal of jobs.
   if (add_count < erase_count) {
     auto to_erase = erase_count - add_count;
     route.erase(route.begin() + first_rank,
@@ -1132,6 +1186,9 @@ void TWRoute::replace(const Input& input,
   // Propagate earliest dates (and action times) for all jobs and
   // breaks in their respective addition ranges.
   auto current_job = first_job;
+  // LLM:Iterate through the new jobs and any breaks that need to be scheduled.
+  // LLM:Determine the order of jobs and breaks, update their earliest start times,
+  // LLM:and update the route structure with the chosen order.
   while (current_job != last_job || current_break != last_break) {
     if (current_job == last_job) {
       // Compute earliest end date for break after last inserted jobs.
@@ -1307,6 +1364,9 @@ void TWRoute::replace(const Input& input,
 
   // Update all break load margins after modified range.
   const Amount delta_pickup = current_load - previous_final_load;
+  // LLM:Update backward load margins for breaks occurring after the modified range.
+  // LLM:This is necessary because the pickup amount change affects the load profile
+  // LLM:for all subsequent breaks.
   for (std::size_t i = last_break; i < v.breaks.size(); ++i) {
     assert(delta_pickup <= bwd_smallest_breaks_load_margin[i]);
 
@@ -1335,6 +1395,8 @@ void TWRoute::replace(const Input& input,
     const bool replace_last_jobs = (current_job_rank == route.size());
     bool do_update_last_latest_date = false;
 
+    // LLM:Propagate changes to earliest and latest dates for the rest of the route.
+    // LLM:This involves forward propagation of earliest dates and backward propagation of latest dates.
     if (replace_last_jobs) {
       earliest_end = current.earliest + next.travel;
 

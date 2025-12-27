@@ -46,6 +46,7 @@ inline void seed_route(const Input& input,
   Index best_job_rank = 0;
   // BRUNO : look for the best job. the unassigned jobs are not ordered,
   // so we end up with the last best job according to criteria ==worst job?
+  // LLM: Iterate through all unassigned jobs to find the best candidate for the seed route based on the initialization criteria.
   for (const auto job_rank : unassigned) {
     const auto& current_job = input.jobs[job_rank];
 
@@ -61,6 +62,7 @@ inline void seed_route(const Input& input,
 
     bool try_validity = false;// if try_validity remains false, it means we already have a better job in best_job_rank
 
+    // LLM: Check if the current job is better than the best job found so far according to the chosen initialization criteria.
     if (init == INIT::HIGHER_AMOUNT) {
       try_validity = (higher_amount < current_job.pickup ||
                       higher_amount < current_job.delivery);
@@ -82,6 +84,7 @@ inline void seed_route(const Input& input,
       continue;
     }
 
+    // LLM: Verify if the vehicle can perform the job within its range and capacity constraints.
     bool is_valid = (vehicle.ok_for_range_bounds(evals[job_rank][v_rank])) &&
                     route.is_valid_addition_for_capacity(input,
                                                          current_job.pickup,
@@ -104,6 +107,7 @@ inline void seed_route(const Input& input,
       init_ok = true;
       best_job_rank = job_rank;
 
+      // LLM: Update the best values found so far to compare with subsequent jobs.
       switch (init) {
         using enum INIT;
       case NONE:
@@ -132,6 +136,7 @@ inline void seed_route(const Input& input,
   }
 
   if (init_ok) {
+    // LLM: Add the selected seed job to the route.
     if (input.jobs[best_job_rank].type == JOB_TYPE::SINGLE) {
       route.add(input, best_job_rank, 0);
       unassigned.erase(best_job_rank);
@@ -164,6 +169,7 @@ template <class Route> struct UnassignedCosts {
                               std::numeric_limits<Cost>::max()),
       min_unassigned_to_route(input.jobs.size(),
                               std::numeric_limits<Cost>::max()) {
+    // LLM: Initialize costs for all unassigned jobs.
     for (const auto job_rank : unassigned) {
       const auto& unassigned_job = input.jobs[job_rank];
       const auto unassigned_job_index = unassigned_job.index();
@@ -204,6 +210,7 @@ template <class Route> struct UnassignedCosts {
   }
 
   double get_insertion_lower_bound(Index j) {
+    // LLM: Calculate a lower bound for the cost of inserting job j into the current route.
     return static_cast<double>(min_route_to_unassigned[j] +
                                min_unassigned_to_route[j] - max_edge_cost);
   }
@@ -212,12 +219,14 @@ template <class Route> struct UnassignedCosts {
     assert(input.jobs[p].type == JOB_TYPE::PICKUP);
 
     // Situation where pickup and delivery are not inserted in a row.
+    // LLM: Lower bound when pickup and delivery are separated by at least one existing job.
     const auto apart_insertion = static_cast<double>(
       min_route_to_unassigned[p] + min_unassigned_to_route[p] +
       min_route_to_unassigned[p + 1] + min_unassigned_to_route[p + 1] -
       2 * max_edge_cost);
 
     // Situation where delivery is inserted next to the pickup.
+    // LLM: Lower bound when delivery immediately follows pickup.
     const auto next_insertion = static_cast<double>(
       min_route_to_unassigned[p] + min_unassigned_to_route[p + 1] +
       vehicle.eval(input.jobs[p].index(), input.jobs[p + 1].index()).cost -
@@ -233,6 +242,7 @@ template <class Route> struct UnassignedCosts {
   void update_min_costs(const Input& input,
                         const std::set<Index>& unassigned,
                         Index inserted_index) {
+    // LLM: Update minimum costs for unassigned jobs after a new job has been inserted into the route.
     for (const auto j : unassigned) {
       const auto& unassigned_job = input.jobs[j];
       const auto unassigned_job_index = unassigned_job.index();
@@ -267,9 +277,11 @@ inline Eval fill_route(const Input& input,
   Eval route_eval = utils::route_eval_for_vehicle(input, v_rank, route.route);
 
   // Store bounds to be able to cut out some loops.
+  // LLM: Precompute costs to unassigned jobs to speed up the insertion process.
   UnassignedCosts unassigned_costs(input, route, unassigned);
 
   bool keep_going = true;
+  // LLM: Continue inserting jobs until no more jobs can be added or no improvement is found.
   while (keep_going) {
     keep_going = false;
     // LLM: Tracks the lowest insertion cost found so far in the current iteration. This cost includes the regret penalty.
@@ -288,10 +300,12 @@ inline Eval fill_route(const Input& input,
 
       const auto& current_job = input.jobs[job_rank];
 
+      // LLM: Skip delivery jobs as they are handled with their associated pickup.
       if (current_job.type == JOB_TYPE::DELIVERY) {
         continue;
       }
 
+      // LLM: Try inserting a single job at all possible positions in the route.
       if (current_job.type == JOB_TYPE::SINGLE &&
           route.size() + 1 <= vehicle.max_tasks) {
 
@@ -326,6 +340,7 @@ inline Eval fill_route(const Input& input,
         }
       }
 
+      // LLM: Try inserting a pickup and delivery pair.
       if (current_job.type == JOB_TYPE::PICKUP &&
           route.size() + 2 <= vehicle.max_tasks) {
 
@@ -338,6 +353,7 @@ inline Eval fill_route(const Input& input,
         }
 
         // Pre-compute cost of addition for matching delivery.
+        // LLM: Precompute insertion costs for the delivery part of the job at all valid positions.
         std::vector<Eval> d_adds(route.route.size() + 1);
         std::vector<unsigned char> valid_delivery_insertions(
           route.route.size() + 1);
@@ -361,6 +377,7 @@ inline Eval fill_route(const Input& input,
                                                   route.route,
                                                   pickup_r);
 
+          // LLM: Check validity for pickup insertion.
           if (!route.is_valid_addition_for_load(input,
                                                 current_job.pickup,
                                                 pickup_r) ||
@@ -381,6 +398,7 @@ inline Eval fill_route(const Input& input,
                ++delivery_r) {
             // Update state variables along the way before potential
             // early abort.
+            // LLM: Update the delivery amount for jobs between pickup and delivery insertion points.
             if (pickup_r < delivery_r) {
               modified_with_pd.push_back(route.route[delivery_r - 1]);
               const auto& new_modified_job =
@@ -451,6 +469,7 @@ inline Eval fill_route(const Input& input,
 
     if (best_cost < std::numeric_limits<double>::max()) {
       const auto& best_job = input.jobs[best_job_rank];
+      // LLM: Perform the actual insertion of the best single job found.
       if (best_job.type == JOB_TYPE::SINGLE) {
         route.add(input, best_job_rank, best_r);
         unassigned.erase(best_job_rank);
@@ -459,6 +478,7 @@ inline Eval fill_route(const Input& input,
         unassigned_costs.update_max_edge(input, route);
         unassigned_costs.update_min_costs(input, unassigned, best_job.index());
       }
+      // LLM: Perform the actual insertion of the best pickup and delivery pair found.
       if (best_job.type == JOB_TYPE::PICKUP) {
         std::vector<Index> modified_with_pd;
         modified_with_pd.reserve(best_delivery_r - best_pickup_r + 2);
@@ -520,6 +540,7 @@ Eval basic(const Input& input,
   switch (sort) {
   case SORT::AVAILABILITY: {
     // Sort vehicles by decreasing "availability".
+    // LLM: Sort vehicles so that those with fewer constraints or more capabilities are considered first (or last depending on implementation details).
     std::ranges::stable_sort(vehicles_ranks,
                              [&](const auto lhs, const auto rhs) {
                                return input.vehicles[lhs] < input.vehicles[rhs];
@@ -565,6 +586,7 @@ Eval basic(const Input& input,
     
     bool all_compatible_jobs_later_undoable = true; // purpose is to determine if all jobs that are compatible with the current vehicle v become "impossible" (infinite cost) for all subsequent vehicles.
     // BRUNO: compute regrets AND check all_compatible_jobs_later_undoable    
+    // LLM: Compute regret for each job for the current vehicle, considering the best option among remaining vehicles.
     for (const auto j : unassigned) {
       regrets[v][j] =
         std::min(regrets[v + 1][j], (evals[j][vehicles_ranks[v + 1]]).cost);
@@ -588,6 +610,7 @@ Eval basic(const Input& input,
 
   Eval sol_eval;
   // BRUNO: build solution by iterating over vehicles
+  // LLM: Construct routes for each vehicle in the sorted order.
   for (Index v = 0; v < nb_vehicles && !unassigned.empty(); ++v) {
     auto v_rank = vehicles_ranks[v];
     auto& current_r = routes[v_rank];
@@ -631,6 +654,7 @@ Eval dynamic_vehicle_choice(const Input& input,
     // LLM: Stores the second minimum cost to serve each unassigned job using any of the remaining vehicles. Used to calculate regret.
     std::vector<Cost> jobs_second_min_costs(input.jobs.size(),
                                             input.get_cost_upper_bound());
+    // LLM: Compute min and second min costs for each unassigned job across all available vehicles.
     for (const auto j : unassigned) {
       for (const auto v : vehicles_ranks) {
         if (evals[j][v].cost <= jobs_min_costs[j]) {
@@ -649,6 +673,7 @@ Eval dynamic_vehicle_choice(const Input& input,
     // vehicle still available.
     // LLM: Counts how many unassigned jobs are "closest" (have minimum cost) to each vehicle. Used to select the next vehicle to process.
     std::vector<unsigned> closest_jobs_count(input.vehicles.size(), 0);
+    // LLM: Identify which vehicle is the best fit for the most jobs.
     for (const auto j : unassigned) {
       for (const auto v : vehicles_ranks) {
         if (evals[j][v].cost == jobs_min_costs[j]) {
@@ -660,6 +685,7 @@ Eval dynamic_vehicle_choice(const Input& input,
     Index v_rank;
 
     if (sort == SORT::AVAILABILITY) {
+      // LLM: Select the vehicle that is the best fit for the most jobs, using availability as a tie-breaker.
       const auto chosen_vehicle =
         std::ranges::min_element(vehicles_ranks,
                                  [&](const auto lhs, const auto rhs) {
@@ -702,6 +728,7 @@ Eval dynamic_vehicle_choice(const Input& input,
     std::vector<Cost> regrets(input.jobs.size(), input.get_cost_upper_bound());
 
     bool all_compatible_jobs_later_undoable = true;
+    // LLM: Calculate regrets for the chosen vehicle.
     for (const auto j : unassigned) {
       if (jobs_min_costs[j] < evals[j][v_rank].cost) {
         regrets[j] = jobs_min_costs[j];
@@ -750,6 +777,7 @@ void set_route(const Input& input,
   const auto& vehicle = input.vehicles[route.v_rank];
 
   // Startup load is the sum of deliveries for (single) jobs.
+  // LLM: Calculate the initial load on the vehicle due to deliveries that must be performed.
   Amount single_jobs_deliveries(input.zero_amount());
   for (const auto& step : vehicle.steps) {
     if (step.type == STEP_TYPE::JOB) {
@@ -776,6 +804,7 @@ void set_route(const Input& input,
   std::vector<Index> job_ranks;
   job_ranks.reserve(vehicle.steps.size());
   std::unordered_set<Index> expected_delivery_ranks;
+  // LLM: Iterate through the user-defined steps to build the route and validate constraints.
   for (const auto& step : vehicle.steps) {
     if (step.type != STEP_TYPE::JOB) {
       continue;
@@ -804,6 +833,7 @@ void set_route(const Input& input,
 
     // Handle load.
     assert(step.job_type.has_value());
+    // LLM: Update the current load based on the job type (pickup, delivery, or single).
     switch (step.job_type.value()) {
     case JOB_TYPE::SINGLE: {
       current_load += job.pickup;
@@ -866,6 +896,7 @@ void set_route(const Input& input,
   // Now route is OK with regard to capacity, max_travel_time,
   // max_tasks, precedence and skills constraints.
   if (!job_ranks.empty()) {
+    // LLM: Check if the route satisfies time window constraints.
     if (!route.is_valid_addition_for_tw(input,
                                         single_jobs_deliveries,
                                         job_ranks.begin(),

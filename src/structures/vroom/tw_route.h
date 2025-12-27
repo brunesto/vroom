@@ -213,6 +213,9 @@ public:
                         const unsigned count) const {
     assert(!route.empty());
     assert(rank + count <= route.size());
+    // LLM:
+    // Check if replacing the range [rank, rank + count) with an empty set of jobs
+    // is valid with respect to time windows and break constraints.
     return is_valid_addition_for_tw(input,
                                     input.zero_amount(),
                                     route.begin(),
@@ -223,6 +226,8 @@ public:
 
   void remove(const Input& input, const Index rank, const unsigned count) {
     assert(rank + count <= route.size());
+    // LLM:
+    // Remove the range of jobs [rank, rank + count) by replacing it with an empty set.
     replace(input,
             input.zero_amount(),
             route.begin(),
