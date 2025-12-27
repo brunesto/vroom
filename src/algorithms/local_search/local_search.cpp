@@ -111,6 +111,8 @@ RouteInsertion compute_best_insertion(const Input& input,
     compute_best_insertion_pd(input, sol_state, j, v, route, NO_EVAL);
   if (insert.eval != NO_EVAL) {
     // Normalize cost per job for consistency with single jobs.
+    // LLM: Since PD jobs involve two stops (pickup and delivery), we divide the cost by 2
+    // LLM: to make it comparable to single jobs when evaluating insertion cost.
     insert.eval.cost =
       static_cast<Cost>(static_cast<double>(insert.eval.cost) / 2);
   }
@@ -373,7 +375,7 @@ void LocalSearch<Route,
                  RouteSplit,
                  PriorityReplace,
                  TSPFix>::run_ls_step() {
-   DEBUG_LOG("run_ls_step()");
+  DEBUG_LOG("run_ls_step()");
   // Store best move involving a pair of routes.
   std::vector<std::vector<std::unique_ptr<Operator>>> best_ops(_nb_vehicles);
   for (std::size_t v = 0; v < _nb_vehicles; ++v) {
@@ -382,6 +384,8 @@ void LocalSearch<Route,
 
   // List of source/target pairs we need to test (all related vehicles
   // at first).
+  // LLM: Initialize the list of vehicle pairs (source, target) to be considered for local search moves.
+  // LLM: Only pairs where the source vehicle is compatible with the target vehicle are added.
   std::vector<std::pair<Index, Index>> s_t_pairs;
   s_t_pairs.reserve(_nb_vehicles * _nb_vehicles);
 
@@ -410,6 +414,7 @@ void LocalSearch<Route,
   Priority best_priority = 0;
   auto best_removal = std::numeric_limits<unsigned>::max();
 
+  // LLM: Main local search loop. Continues as long as an improvement (positive gain or priority increase) is found.
   while (best_gain.cost > 0 || best_priority > 0) {
     if (_deadline.has_value() && _deadline.value() < utils::now()) {
       break;
@@ -419,6 +424,8 @@ void LocalSearch<Route,
       // Move(s) that don't make sense for shipment-only instances.
 
       // UnassignedExchange stuff
+      // LLM: Iterate over all unassigned jobs to see if they can be swapped with an assigned job
+      // LLM: to improve the solution (e.g., by increasing total priority).
       for (const Index u : _sol_state.unassigned) {
         if (_input.jobs[u].type != JOB_TYPE::SINGLE) {
           continue;
@@ -524,6 +531,8 @@ void LocalSearch<Route,
       }
 
       // PriorityReplace stuff
+      // LLM: Try to replace a sequence of jobs in a route with an unassigned job
+      // LLM: if the unassigned job has a higher priority than the sum of priorities of the replaced jobs.
       for (const Index u : _sol_state.unassigned) {
         if (_input.jobs[u].type != JOB_TYPE::SINGLE) {
           continue;
@@ -626,6 +635,8 @@ void LocalSearch<Route,
     }
 
     // CrossExchange stuff
+    // LLM: Try to swap sequences of jobs between two different routes (source and target).
+    // LLM: This operator helps in exchanging segments of routes to improve overall cost.
     for (const auto& [source, target] : s_t_pairs) {
       if (target <= source || // This operator is symmetric.
           best_priorities[source] > 0 || best_priorities[target] > 0 ||
@@ -763,6 +774,7 @@ void LocalSearch<Route,
 
     if (_input.has_jobs()) {
       // MixedExchange stuff
+      // LLM: Try to swap a single job from the source route with a sequence of jobs from the target route.
       for (const auto& [source, target] : s_t_pairs) {
         if (source == target || best_priorities[source] > 0 ||
             best_priorities[target] > 0 || _sol[source].size() == 0 ||
@@ -876,6 +888,8 @@ void LocalSearch<Route,
     }
 
     // TwoOpt stuff
+    // LLM: Try to swap the end segments of two routes.
+    // LLM: This effectively reconnects the first part of source with the second part of target, and vice versa.
     for (const auto& [source, target] : s_t_pairs) {
       if (target <= source || // This operator is symmetric.
           best_priorities[source] > 0 || best_priorities[target] > 0 ||
@@ -994,6 +1008,7 @@ void LocalSearch<Route,
     }
 
     // ReverseTwoOpt stuff
+    // LLM: Similar to TwoOpt, but the segment from the target route is reversed before being appended to the source route.
     for (const auto& [source, target] : s_t_pairs) {
       if (source == target || best_priorities[source] > 0 ||
           best_priorities[target] > 0 ||
@@ -1097,6 +1112,7 @@ void LocalSearch<Route,
       // Move(s) that don't make sense for shipment-only instances.
 
       // Relocate stuff
+      // LLM: Try to move a single job from the source route to the target route.
       for (const auto& [source, target] : s_t_pairs) {
         if (source == target || best_priorities[source] > 0 ||
             best_priorities[target] > 0 || _sol[source].size() == 0) {
@@ -1157,6 +1173,7 @@ void LocalSearch<Route,
       }
 
       // OrOpt stuff
+      // LLM: Try to move a sequence of two consecutive jobs from the source route to the target route.
       for (const auto& [source, target] : s_t_pairs) {
         if (source == target || best_priorities[source] > 0 ||
             best_priorities[target] > 0 || _sol[source].size() < 2) {
@@ -1233,6 +1250,7 @@ void LocalSearch<Route,
     }
 
     // TSPFix stuff
+    // LLM: Try to optimize the route using TSP heuristics (e.g., 2-opt) if applicable.
     if (_input.apply_TSPFix() && !_input.has_shipments()) {
       for (const auto& [source, target] : s_t_pairs) {
         if (target != source || best_priorities[source] > 0 ||
@@ -1250,6 +1268,7 @@ void LocalSearch<Route,
     }
 
     // IntraExchange stuff
+    // LLM: Try to swap two jobs within the same route.
     for (const auto& [source, target] : s_t_pairs) {
       if (source != target || best_priorities[source] > 0 ||
           _sol[source].size() < 3) {
@@ -1300,6 +1319,7 @@ void LocalSearch<Route,
     }
 
     // IntraCrossExchange stuff
+    // LLM: Try to swap two sequences of jobs within the same route.
     constexpr unsigned min_intra_cross_exchange_size = 5;
     for (const auto& [source, target] : s_t_pairs) {
       if (source != target || best_priorities[source] > 0 ||
@@ -1371,6 +1391,7 @@ void LocalSearch<Route,
     }
 
     // IntraMixedExchange stuff
+    // LLM: Try to swap a single job with a sequence of jobs within the same route.
     for (const auto& [source, target] : s_t_pairs) {
       if (source != target || best_priorities[source] > 0 ||
           _sol[source].size() < 4) {
@@ -1438,6 +1459,7 @@ void LocalSearch<Route,
     }
 
     // IntraRelocate stuff
+    // LLM: Try to move a single job to a different position within the same route.
     for (const auto& [source, target] : s_t_pairs) {
       if (source != target || best_priorities[source] > 0 ||
           _sol[source].size() < 2) {
@@ -1496,6 +1518,7 @@ void LocalSearch<Route,
     }
 
     // IntraOrOpt stuff
+    // LLM: Try to move a sequence of two consecutive jobs to a different position within the same route.
     for (const auto& [source, target] : s_t_pairs) {
       if (source != target || best_priorities[source] > 0 ||
           _sol[source].size() < 4) {
@@ -1570,6 +1593,7 @@ void LocalSearch<Route,
     }
 
     // IntraTwoOpt stuff
+    // LLM: Try to reverse a segment of jobs within the same route.
     for (const auto& [source, target] : s_t_pairs) {
       if (source != target || best_priorities[source] > 0 ||
           _sol[source].size() < 4) {
@@ -1603,6 +1627,7 @@ void LocalSearch<Route,
       // Move(s) that don't make sense for job-only instances.
 
       // PDShift stuff
+      // LLM: Try to move a pickup and its corresponding delivery from the source route to the target route.
       for (const auto& [source, target] : s_t_pairs) {
         if (source == target || best_priorities[source] > 0 ||
             best_priorities[target] > 0 || _sol[source].size() == 0) {
@@ -1669,6 +1694,8 @@ void LocalSearch<Route,
     if (!_input.has_homogeneous_locations() ||
         !_input.has_homogeneous_profiles() || !_input.has_homogeneous_costs()) {
       // RouteExchange stuff
+      // LLM: Try to swap the entire content of two routes.
+      // LLM: This is useful when vehicles have different profiles, costs, or start/end locations.
       for (const auto& [source, target] : s_t_pairs) {
         if (target <= source || best_priorities[source] > 0 ||
             best_priorities[target] > 0 ||
@@ -1716,6 +1743,7 @@ void LocalSearch<Route,
 
     if (_input.has_jobs()) {
       // SwapStar stuff
+      // LLM: Try to swap two jobs between two routes, potentially inserting them at optimal positions.
       for (const auto& [source, target] : s_t_pairs) {
         if (target <= source || // This operator is symmetric.
             best_priorities[source] > 0 || best_priorities[target] > 0 ||
@@ -1747,6 +1775,8 @@ void LocalSearch<Route,
     if (!_input.has_homogeneous_locations() ||
         !_input.has_homogeneous_profiles() || !_input.has_homogeneous_costs()) {
       // RouteSplit stuff
+      // LLM: Try to split a route into two separate routes using an empty vehicle.
+      // LLM: This can be beneficial if using two smaller vehicles is cheaper than one large one.
       std::vector<Index> empty_route_ranks;
       empty_route_ranks.reserve(_input.vehicles.size());
 
@@ -1786,6 +1816,8 @@ void LocalSearch<Route,
 
     // Find best overall move, first checking priority increase then
     // best gain if no priority increase is available.
+    // LLM: Select the best move found across all operators and vehicle pairs.
+    // LLM: Priority improvements take precedence over cost improvements.
     best_priority = 0;
     best_removal = std::numeric_limits<unsigned>::max();
     best_gain = Eval();
@@ -1819,6 +1851,7 @@ void LocalSearch<Route,
     if (best_priority > 0 || best_gain.cost > 0) {
       assert(best_ops[best_source][best_target] != nullptr);
 
+      // LLM: Execute the selected operator to modify the solution.
       best_ops[best_source][best_target]->apply();
 
       auto update_candidates =
@@ -1880,6 +1913,9 @@ void LocalSearch<Route,
 
       // Set gains to zero for what needs to be recomputed in the next
       // round and set route pairs accordingly.
+      // LLM: Reset best gains and operators for routes that were modified.
+      // LLM: Re-initialize the list of vehicle pairs to check in the next iteration,
+      // LLM: focusing on pairs involving the modified routes.
       s_t_pairs.clear();
       for (auto v_rank : update_candidates) {
         best_gains[v_rank].assign(_nb_vehicles, Eval());
