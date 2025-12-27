@@ -1,0 +1,18 @@
+{
+    "cmake.sourceDirectory": "/workspaces/vroom/include/cxxopts",
+    "clangd.arguments": [
+        // 1. Point to the folder containing compile_commands.json
+        // CHANGE "build" to the actual folder name (e.g., "src", "out", or remove if at root)
+        "--compile-commands-dir=${workspaceFolder}/src",
+
+        // 2. Enable background indexing (crucial for accurate Go to Definition)
+        "--background-index",
+
+        // 3. (Optional) Improve code completion visuals
+        "--completion-style=detailed",
+        "--header-insertion=iwyu"
+    ],
+
+    // Ensure Microsoft IntelliSense is disabled to prevent conflicts
+    "C_Cpp.intelliSenseEngine": "disabled"
+}
