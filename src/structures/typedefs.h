@@ -33,6 +33,7 @@ using Id = uint64_t;
 /**
  * LLM:
  * @brief Type for indices (e.g., matrix indices).
+ * BRUNO: variables are often named "rank" in this project
  */
 using Index = uint16_t;
 /**
@@ -171,6 +172,8 @@ enum class STEP_TYPE : std::uint8_t { START, JOB, BREAK, END };
 
 // Heuristic options.
 enum class HEURISTIC : std::uint8_t { BASIC, DYNAMIC };
+
+// BRUNO: when seeding a route, different strategies can be used to pick the first job
 enum class INIT : std::uint8_t {
   NONE,
   HIGHER_AMOUNT,

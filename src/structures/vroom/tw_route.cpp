@@ -11,7 +11,7 @@ All rights reserved (see LICENSE).
 
 #include "structures/vroom/tw_route.h"
 #include "utils/helpers.h"
-
+#include "utils/log.h"
 namespace vroom {
 
 TWRoute::TWRoute(const Input& input, Index v, unsigned amount_size)
@@ -996,7 +996,8 @@ void TWRoute::replace(const Input& input,
                       const Index last_rank) {
   assert(first_job <= last_job);
   assert(first_rank <= last_rank);
-
+  TRACE_LOG("replace() "<< first_rank << " to " << last_rank << " with "
+            << std::distance(first_job, last_job) << " jobs");
   const auto& v = input.vehicles[v_rank];
 
   PreviousInfo current(0, 0);

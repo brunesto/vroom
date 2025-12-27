@@ -25,13 +25,14 @@ inline void seed_route(const Input& input,
                        const std::vector<std::vector<Eval>>& evals,
                        std::set<Index>& unassigned,
                        auto job_not_ok) {
+  
   assert(route.empty() && init != INIT::NONE);
-
   const auto v_rank = route.v_rank;
   const auto& vehicle = input.vehicles[v_rank];
+  DEBUG_LOG("seed_route v_rank:"<< v_rank);
 
-  // Initialize current route with the "best" valid job.
-  bool init_ok = false;
+  // Initialize current route with the "best" valid job.  
+  bool init_ok = false;// init_ok:at least one valid job was found
 
   // LLM: Used when init is HIGHER_AMOUNT. Tracks the maximum amount (pickup or delivery) among valid jobs to find the one with the highest demand.
   Amount higher_amount(input.zero_amount());
@@ -43,6 +44,8 @@ inline void seed_route(const Input& input,
   Duration earliest_deadline = std::numeric_limits<Duration>::max();
   // LLM: Stores the index of the job that best matches the initialization criteria (highest amount, furthest, nearest, or earliest deadline).
   Index best_job_rank = 0;
+  // BRUNO : look for the best job. the unassigned jobs are not ordered,
+  // so we end up with the last best job according to criteria ==worst job?
   for (const auto job_rank : unassigned) {
     const auto& current_job = input.jobs[job_rank];
 
@@ -51,13 +54,12 @@ inline void seed_route(const Input& input,
       continue;
     }
 
-    const bool is_pickup = (current_job.type == JOB_TYPE::PICKUP);
-
+    const bool is_pickup = (current_job.type == JOB_TYPE::PICKUP);   
     if (route.size() + (is_pickup ? 2 : 1) > vehicle.max_tasks) {
       continue;
     }
 
-    bool try_validity = false;
+    bool try_validity = false;// if try_validity remains false, it means we already have a better job in best_job_rank
 
     if (init == INIT::HIGHER_AMOUNT) {
       try_validity = (higher_amount < current_job.pickup ||
@@ -136,7 +138,7 @@ inline void seed_route(const Input& input,
     }
     if (input.jobs[best_job_rank].type == JOB_TYPE::PICKUP) {
       std::vector<Index> p_d(
-        {best_job_rank, static_cast<Index>(best_job_rank + 1)});
+        {best_job_rank, static_cast<Index>(best_job_rank + 1)}); // Pickup and Delivery
       route.replace(input, input.zero_amount(), p_d.begin(), p_d.end(), 0, 0);
       unassigned.erase(best_job_rank);
       unassigned.erase(best_job_rank + 1);
@@ -257,6 +259,7 @@ inline Eval fill_route(const Input& input,
                        std::set<Index>& unassigned,
                        const std::vector<Cost>& regrets,
                        double lambda) {
+  DEBUG_LOG("fill_route() ");
   const auto v_rank = route.v_rank;
   const auto& vehicle = input.vehicles[v_rank];
 
@@ -584,7 +587,7 @@ Eval basic(const Input& input,
   }
 
   Eval sol_eval;
-
+  // BRUNO: build solution by iterating over vehicles
   for (Index v = 0; v < nb_vehicles && !unassigned.empty(); ++v) {
     auto v_rank = vehicles_ranks[v];
     auto& current_r = routes[v_rank];
