@@ -149,6 +149,7 @@ public:
 
   unsigned get_amount_size() const {
     assert(_amount_size.has_value());
+    // LLM: Return the dimension of the amount vector (e.g., capacity components).
     return _amount_size.value();
   }
 

@@ -56,6 +56,7 @@ void Input::add_routing_wrapper(const std::string& profile) {
 
   auto& routing_wrapper = _routing_wrappers.emplace_back();
 
+  // LLM: Select and instantiate the appropriate routing wrapper based on the configured router type.
   switch (_router) {
   case ROUTER::OSRM: {
     // Use osrm-routed.
@@ -109,6 +110,7 @@ void Input::check_amount_size(const Amount& amount) {
     _amount_size = size;
     _zero = Amount(size);
   } else {
+    // LLM: Ensure that all amounts (capacities, demands) have the same dimension across the problem.
     if (size != _amount_size.value()) {
       throw InputException(
         std::format("Inconsistent delivery length: {} instead of {}.",
@@ -144,6 +146,7 @@ void Input::check_job(Job& job) {
   if (!job.location.user_index()) {
     // Index of job in the matrices is not specified in input, check
     // for already stored location or assign new index.
+    // LLM: Manage internal location indices when user indices are not provided. Reuse existing locations to minimize matrix size.
     auto search = _locations_to_index.find(job.location);
     if (search != _locations_to_index.end()) {
       // Using stored index for existing location.
@@ -222,6 +225,7 @@ void Input::add_shipment(const Job& pickup, const Job& delivery) {
                   pickup.id,
                   delivery.id));
   }
+  // LLM: Verify that pickup and delivery have matching skills.
   for (const auto s : pickup.skills) {
     if (!delivery.skills.contains(s)) {
       throw InputException(
@@ -286,6 +290,7 @@ void Input::add_vehicle(const Vehicle& vehicle) {
         _locations_used_several_times.insert(start_loc);
       } else {
         // Append new location and store corresponding index.
+        // LLM: Assign a new internal index to the start location if it hasn't been seen before.
         auto new_index = _locations.size();
         start_loc.set_index(new_index);
         _locations.push_back(start_loc);
@@ -484,6 +489,7 @@ UserCost Input::check_cost_bound(const Matrix<UserCost>& matrix) const {
   std::vector<UserCost> max_cost_per_line(matrix.size(), 0);
   std::vector<UserCost> max_cost_per_column(matrix.size(), 0);
 
+  // LLM: Compute maximum costs per row and column to estimate upper bounds.
   for (const auto i : _matrices_used_index) {
     for (const auto j : _matrices_used_index) {
       max_cost_per_line[i] = std::max(max_cost_per_line[i], matrix[i][j]);
@@ -531,6 +537,7 @@ void Input::set_skills_compatibility() {
     std::vector<unsigned char>>(vehicles.size(),
                                 std::vector<unsigned char>(jobs.size(), true));
   if (_has_skills) {
+    // LLM: Check if vehicles have all the required skills for each job.
     for (std::size_t v = 0; v < vehicles.size(); ++v) {
       const auto& v_skills = vehicles[v].skills;
 
@@ -563,6 +570,7 @@ void Input::set_extra_compatibility() {
         continue;
       }
 
+      // LLM: Check if the job fits in the vehicle's capacity.
       bool is_compatible =
         empty_route.is_valid_addition_for_capacity(*this,
                                                    jobs[j].pickup,
@@ -573,12 +581,14 @@ void Input::set_extra_compatibility() {
 
       if (is_compatible && _has_TW) {
         if (jobs[j].type == JOB_TYPE::SINGLE) {
+          // LLM: Check if the single job fits within time windows.
           is_compatible =
             is_compatible &&
             empty_route.is_valid_addition_for_tw_without_max_load(*this, j, 0);
         } else {
           assert(is_shipment_pickup);
           std::vector<Index> p_d({j, static_cast<Index>(j + 1)});
+          // LLM: Check if the pickup and delivery pair fits within time windows.
           is_compatible =
             is_compatible && empty_route.is_valid_addition_for_tw(*this,
                                                                   _zero,
@@ -612,6 +622,7 @@ void Input::set_vehicles_compatibility() {
     _vehicle_to_vehicle_compatibility[v1][v1] = true;
     for (std::size_t v2 = v1 + 1; v2 < vehicles.size(); ++v2) {
       for (std::size_t j = 0; j < jobs.size(); ++j) {
+        // LLM: Two vehicles are compatible if they can both perform at least one common job.
         if (_vehicle_to_job_compatibility[v1][j] &&
             _vehicle_to_job_compatibility[v2][j]) {
           _vehicle_to_vehicle_compatibility[v1][v2] = true;
@@ -650,6 +661,7 @@ void Input::set_vehicles_costs() {
       constexpr bool reset_cost_factor = true;
       vehicle.cost_wrapper.set_costs_matrix(&(c_m->second), reset_cost_factor);
     } else {
+      // LLM: If no custom cost matrix is provided, use the duration matrix as the basis for costs.
       vehicle.cost_wrapper.set_costs_matrix(&(duration_m->second));
     }
   }
@@ -701,6 +713,7 @@ void Input::set_vehicles_max_tasks() {
         std::size_t doable_pickups = 0;
         std::size_t doable_deliveries = 0;
 
+        // LLM: Estimate the maximum number of tasks a vehicle can perform by summing up the smallest demands until capacity is reached.
         for (std::size_t j = 0; j < jobs.size(); ++j) {
           if (vehicle_ok_with_job(v, job_pickups_per_component[i][j].rank) &&
               pickup_sum <= vehicles[v].capacity[i]) {
@@ -763,6 +776,7 @@ void Input::set_vehicles_max_tasks() {
       std::size_t doable_tasks = 0;
       Duration time_sum = 0;
 
+      // LLM: Estimate the maximum number of tasks based on time constraints by summing up the shortest service times.
       for (std::size_t j = 0; j < jobs.size(); ++j) {
         if (vehicle_ok_with_job(v, job_times_per_type[t][j].rank)) {
           time_sum += job_times_per_type[t][j].action;
@@ -813,6 +827,7 @@ void Input::set_jobs_vehicles_evals() {
 
       Duration added_task_duration = job.services[vehicle.type];
 
+      // LLM: Calculate travel cost from vehicle start to job (and potentially to delivery).
       current_eval = is_pickup ? vehicle.eval(j_index, last_job_index) : Eval();
       if (vehicle.has_start()) {
         const auto start_index = vehicle.start.value().index();
@@ -861,6 +876,7 @@ void Input::set_jobs_durations_per_vehicle_type() {
 
     // Iterate on all user-defined vehicle types to override relevant
     // setup and service values.
+    // LLM: Apply vehicle-type specific service and setup times if defined.
     for (std::size_t type_rank = 1; type_rank < nb_types; ++type_rank) {
       const auto& type = _vehicle_types[type_rank];
 
@@ -983,6 +999,7 @@ void Input::init_missing_matrices(const std::string& profile) {
     // No durations/distances matrices have been manually set,
     // create empty ones to allow for concurrent modification later
     // on.
+    // LLM: Initialize empty matrices for profiles that don't have custom ones, to be filled by the routing engine.
     create_routing_wrapper = true;
     _durations_matrices.try_emplace(profile);
     _distances_matrices.try_emplace(profile);
@@ -1068,6 +1085,7 @@ void Input::set_matrices(unsigned nb_thread, bool sparse_filling) {
 
   // Split computing matrices across threads based on number of
   // profiles.
+  // LLM: Distribute matrix computation for different profiles across available threads.
   const auto nb_buckets =
     std::min(nb_thread, static_cast<unsigned>(_profiles.size()));
 
@@ -1118,6 +1136,7 @@ void Input::set_matrices(unsigned nb_thread, bool sparse_filling) {
             } else {
               // Location indices are provided in input so we need an
               // indirection based on order in _locations.
+              // LLM: Remap matrix values when custom location indices are used.
               if (define_durations) {
                 Matrix<UserDuration> full_m(_max_matrices_used_index + 1);
                 for (Index i = 0; i < _locations.size(); ++i) {
@@ -1257,6 +1276,7 @@ Solution Input::solve(const unsigned nb_searches,
   set_vehicles_max_tasks();
 
   // Load relevant problem.
+  // LLM: Instantiate the appropriate VRP solver (CVRP or VRPTW) based on problem characteristics.
   auto instance = get_problem();
   _end_loading = std::chrono::high_resolution_clock::now();
 
@@ -1312,6 +1332,7 @@ Solution Input::solve(const unsigned nb_searches,
       semaphore.release();
     };
 
+    // LLM: Add geometry to routes if requested, using multiple threads.
     for (std::size_t i = 0; i < sol.routes.size(); ++i) {
       threads.emplace_back(run_routing, i);
     }
@@ -1358,6 +1379,7 @@ Solution Input::check(unsigned nb_thread) {
 
   // Check.
   std::unordered_map<Index, Index> route_rank_to_v_rank;
+  // LLM: Validate the solution and calculate ETAs using the check module.
   auto sol =
     validation::check_and_set_ETA(*this, nb_thread, route_rank_to_v_rank);
 
