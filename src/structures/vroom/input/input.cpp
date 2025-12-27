@@ -193,7 +193,7 @@ void Input::run_basic_checks() const {
 }
 
 void Input::add_job(const Job& job) {
-  DEBUG_LOG("Input::add_job()"<< job);
+  INFO_LOG("Input::add_job()"<< job);
   if (job.type != JOB_TYPE::SINGLE) {
     throw InputException("Wrong job type.");
   }
@@ -207,7 +207,7 @@ void Input::add_job(const Job& job) {
 }
 
 void Input::add_shipment(const Job& pickup, const Job& delivery) {
-  DEBUG_LOG("Input::add_shipment() p:"<< pickup<<" d: "<< delivery);
+  INFO_LOG("Input::add_shipment() \n  p:"<< pickup<<"\n  d: "<< delivery);
   if (pickup.priority != delivery.priority) {
     throw InputException(
       std::
@@ -262,6 +262,7 @@ void Input::add_shipment(const Job& pickup, const Job& delivery) {
 }
 
 void Input::add_vehicle(const Vehicle& vehicle) {
+  INFO_LOG("Input::add_vehicle() "<< vehicle);
   vehicles.push_back(vehicle);
 
   auto& current_v = vehicles.back();

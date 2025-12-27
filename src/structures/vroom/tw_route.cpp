@@ -1480,8 +1480,23 @@ void TWRoute::replace(const Input& input,
   if (last_break > 0) {
     bwd_update_breaks_load_margin_from(input, current_job_rank);
   }
+
+  
+
 }
 
+std::ostream& TWRoute::toString(std::ostream& os) const {  
+    os << "TWRoute v_rank:" << v_rank << " route_size:" << route.size()
+       << " earliest_end:" << earliest_end << std::endl;
+    for (std::size_t i = 0; i < route.size(); ++i) {
+      os << std::setw(2)<< i << " " 
+         << " @:"<<std::format("{:08}", earliest[i] )
+         << " job:"<<route[i]  << std::endl;
+         
+    }
+    return os;
+  }
+// BRUNO: template instantiations follow
 template bool
 TWRoute::is_valid_addition_for_tw(const Input& input,
                                   const Amount& delivery,

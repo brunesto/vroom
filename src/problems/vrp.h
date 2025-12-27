@@ -98,12 +98,12 @@ template <class Route> struct SolvingContext {
     std::iota(vehicles_ranks.begin(), vehicles_ranks.end(), 0);
   }
 
+  // BRUNO: RECORD the new solution in heuristic_indicators , returns false if it is already known
   bool heuristic_solution_already_found(unsigned rank) {
     assert(rank < sol_indicators.size());
     const std::scoped_lock<std::mutex> lock(heuristic_indicators_m);
     const auto [dummy, insertion_ok] =
       heuristic_indicators.insert(sol_indicators[rank]);
-
     return !insertion_ok;
   }
 };

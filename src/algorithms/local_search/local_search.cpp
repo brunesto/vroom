@@ -8,7 +8,7 @@ All rights reserved (see LICENSE).
 */
 
 #include <numeric>
-
+#include "utils/log.h"
 #include "algorithms/local_search/insertion_search.h"
 #include "algorithms/local_search/local_search.h"
 #include "problems/vrptw/operators/cross_exchange.h"
@@ -373,6 +373,7 @@ void LocalSearch<Route,
                  RouteSplit,
                  PriorityReplace,
                  TSPFix>::run_ls_step() {
+   DEBUG_LOG("run_ls_step()");
   // Store best move involving a pair of routes.
   std::vector<std::vector<std::unique_ptr<Operator>>> best_ops(_nb_vehicles);
   for (std::size_t v = 0; v < _nb_vehicles; ++v) {

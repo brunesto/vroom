@@ -10,6 +10,9 @@ All rights reserved (see LICENSE).
 
 */
 
+#include <iomanip>
+#include <iostream>
+
 #include "structures/typedefs.h"
 #include "structures/vroom/input/input.h"
 #include "structures/vroom/raw_route.h"
@@ -247,6 +250,8 @@ public:
                Iter last_job,
                Index first_rank,
                Index last_rank);
+
+  std::ostream& toString(std::ostream& os) const override; 
 };
 
 } // namespace vroom

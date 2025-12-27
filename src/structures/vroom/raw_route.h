@@ -10,6 +10,9 @@ All rights reserved (see LICENSE).
 
 */
 
+#include <iomanip>
+#include <iostream>
+
 #include "structures/typedefs.h"
 #include "structures/vroom/input/input.h"
 
@@ -267,6 +270,23 @@ public:
                const Index last_rank) {
     replace(input, first_job, last_job, first_rank, last_rank);
   }
+
+    // this is a bit of cpp gymnastics to simulate virtual override of the << stream operator.
+    // It is NOT virtual, but it calls a virtual function, which can be overridden in derived classes.
+    friend std::ostream& operator<<(std::ostream& os, const RawRoute& route) {
+        return route.toString(os);
+    }
+  virtual std::ostream& toString(std::ostream& os) const {
+    os << "RawRoute v_rank:" << v_rank << " route_size:" << route.size()
+       << " capacity:" << capacity << std::endl;
+    for (std::size_t i = 0; i < route.size(); ++i) {
+      os << i << " " << std::setw(8) << std::setfill('0') << 0 << " load:"
+         << load_at_step(i + 1) << " " << route[i] << std::endl;
+    }
+    return os;
+  }
+
+
 };
 
 } // namespace vroom

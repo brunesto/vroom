@@ -515,7 +515,7 @@ inline Eval fill_route(const Input& input,
     // Account for fixed cost if we actually filled an empty route.
     route_eval.cost += vehicle.fixed_cost();
   }
-
+  TRACE_LOG("replace() done\n eval:"<< route_eval<< "\n route:" << route);
   return route_eval;
 }
 
@@ -638,6 +638,7 @@ Eval dynamic_vehicle_choice(const Input& input,
                             INIT init,
                             double lambda,
                             SORT sort) {
+  DEBUG_LOG("dynamic_vehicle_choice() ");
   const auto& evals = input.jobs_vehicles_evals();
 
   Eval sol_eval;
@@ -773,6 +774,7 @@ template <class Route>
 void set_route(const Input& input,
                Route& route,
                std::unordered_set<Index>& assigned) {
+  DEBUG_LOG("set_route() ");                
   assert(route.empty());
   const auto& vehicle = input.vehicles[route.v_rank];
 
@@ -920,6 +922,7 @@ template <class Route>
 void set_initial_routes(const Input& input,
                         std::vector<Route>& routes,
                         std::unordered_set<Index>& assigned) {
+  DEBUG_LOG("set_initial_routes() ");
   std::ranges::for_each(routes,
                         [&](auto& r) { set_route(input, r, assigned); });
 }
