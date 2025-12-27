@@ -10,6 +10,8 @@ All rights reserved (see LICENSE).
 
 */
 
+#include <iostream>
+
 #include "structures/typedefs.h"
 
 namespace vroom {
@@ -36,6 +38,28 @@ struct ForcedService {
   ForcedService(const std::optional<UserDuration>& at,
                 const std::optional<UserDuration>& after,
                 const std::optional<UserDuration>& before);
+
+  friend std::ostream& operator<<(std::ostream& os, const ForcedService& fs) {
+    os << "{";
+    bool first = true;
+    if (fs.at.has_value()) {
+      os << "\"at\":" << fs.at.value();
+      first = false;
+    }
+    if (fs.after.has_value()) {
+      if (!first)
+        os << ",";
+      os << "\"after\":" << fs.after.value();
+      first = false;
+    }
+    if (fs.before.has_value()) {
+      if (!first)
+        os << ",";
+      os << "\"before\":" << fs.before.value();
+    }
+    os << "}";
+    return os;
+  }
 };
 
 /**
@@ -83,6 +107,43 @@ struct VehicleStep {
    */
   // Used for single jobs, pickups and deliveries.
   VehicleStep(JOB_TYPE job_type, Id id, ForcedService&& forced_service);
+
+  friend std::ostream& operator<<(std::ostream& os, const VehicleStep& vs) {
+    os << "{\"id\":" << vs.id << ",\"type\":\"";
+    switch (vs.type) {
+    case STEP_TYPE::START:
+      os << "START";
+      break;
+    case STEP_TYPE::JOB:
+      os << "JOB";
+      break;
+    case STEP_TYPE::BREAK:
+      os << "BREAK";
+      break;
+    case STEP_TYPE::END:
+      os << "END";
+      break;
+    }
+    os << "\"";
+    if (vs.job_type.has_value()) {
+      os << ",\"job_type\":\"";
+      switch (vs.job_type.value()) {
+      case JOB_TYPE::SINGLE:
+        os << "SINGLE";
+        break;
+      case JOB_TYPE::PICKUP:
+        os << "PICKUP";
+        break;
+      case JOB_TYPE::DELIVERY:
+        os << "DELIVERY";
+        break;
+      }
+      os << "\"";
+    }
+    os << ",\"forced_service\":" << vs.forced_service;
+    os << ",\"rank\":" << vs.rank << "}";
+    return os;
+  }
 };
 
 } // namespace vroom

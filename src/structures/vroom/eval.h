@@ -11,6 +11,7 @@ All rights reserved (see LICENSE).
 */
 
 #include <tuple>
+#include <iostream>
 
 #include "structures/typedefs.h"
 
@@ -79,6 +80,13 @@ struct Eval {
   }
 
   friend bool operator==(const Eval& lhs, const Eval& rhs) = default;
+
+  friend std::ostream& operator<<(std::ostream& os, const Eval& eval) {
+    os << "{\"cost\":" << eval.cost << ",\"duration\":" << eval.duration
+       << ",\"distance\":" << eval.distance
+       << ",\"task_duration\":" << eval.task_duration << "}";
+    return os;
+  }
 };
 
 constexpr Eval NO_EVAL = Eval(std::numeric_limits<Cost>::max(), 0, 0, 0);

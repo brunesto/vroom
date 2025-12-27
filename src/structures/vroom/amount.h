@@ -11,6 +11,7 @@ All rights reserved (see LICENSE).
 */
 
 #include <cassert>
+#include <iostream>
 #include <vector>
 
 #include "structures/typedefs.h"
@@ -33,6 +34,19 @@ public:
   bool empty() const {
     return size() == 0;
   };
+
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const AmountExpression& amount) {
+    os << "[";
+    for (std::size_t i = 0; i < amount.size(); ++i) {
+      os << amount[i];
+      if (i < amount.size() - 1) {
+        os << ",";
+      }
+    }
+    os << "]";
+    return os;
+  }
 };
 
 // Lexicographical comparison, useful for situations where a total

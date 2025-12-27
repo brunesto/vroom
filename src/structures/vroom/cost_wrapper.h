@@ -10,6 +10,8 @@ All rights reserved (see LICENSE).
 
 */
 
+#include <iostream>
+
 #include "structures/generic/matrix.h"
 #include "structures/typedefs.h"
 
@@ -114,6 +116,21 @@ public:
    * @return The calculated user cost.
    */
   UserCost user_cost_from_user_metrics(UserDuration d, UserDistance m) const;
+
+  friend std::ostream& operator<<(std::ostream& os, const CostWrapper& cw) {
+    os << "{\"per_hour\":" << cw._per_hour << ",\"per_km\":" << cw._per_km
+       << ",\"discrete_duration_factor\":" << cw.discrete_duration_factor
+       << ",\"discrete_duration_cost_factor\":"
+       << cw.discrete_duration_cost_factor
+       << ",\"discrete_distance_cost_factor\":"
+       << cw.discrete_distance_cost_factor
+       << ",\"duration_matrix_size\":" << cw.duration_matrix_size
+       << ",\"distance_matrix_size\":" << cw.distance_matrix_size
+       << ",\"cost_matrix_size\":" << cw.cost_matrix_size
+       << ",\"cost_based_on_metrics\":"
+       << (cw._cost_based_on_metrics ? "true" : "false") << "}";
+    return os;
+  }
 };
 
 } // namespace vroom

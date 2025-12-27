@@ -11,6 +11,7 @@ All rights reserved (see LICENSE).
 */
 
 #include <cassert>
+#include <iostream>
 
 #include "structures/typedefs.h"
 
@@ -121,6 +122,16 @@ public:
   // are equal. The last part is required for situations with no
   // explicit index provided in input.
   bool operator==(const Location& other) const;
+
+  friend std::ostream& operator<<(std::ostream& os, const Location& loc) {
+    os << "{\"index\":" << loc._index;
+    if (loc._coords.has_value()) {
+      os << ",\"coords\":[" << loc._coords.value().lon << "," << loc._coords.value().lat
+         << "]";
+    }
+    os << "}";
+    return os;
+  }
 };
 
 } // namespace vroom

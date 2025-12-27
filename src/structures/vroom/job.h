@@ -11,6 +11,7 @@ All rights reserved (see LICENSE).
 */
 
 #include <string>
+#include <iostream>
 
 #include "structures/typedefs.h"
 #include "structures/vroom/amount.h"
@@ -117,6 +118,34 @@ struct Job {
    * @return True if the time is within any of the job's time windows, false otherwise.
    */
   bool is_valid_start(Duration time) const;
+
+  friend std::ostream& operator<<(std::ostream& os, const Job& job) {
+    os << "{\"id\":" << job.id << ",\"type\":\""
+       << (job.type == JOB_TYPE::SINGLE
+             ? "SINGLE"
+             : (job.type == JOB_TYPE::PICKUP ? "PICKUP" : "DELIVERY"))
+       << "\""
+       << ",\"location\":" << job.location
+       << ",\"setup\":" << job.default_setup
+       << ",\"service\":" << job.default_service
+       << ",\"delivery\":" << job.delivery << ",\"pickup\":" << job.pickup
+       << ",\"skills\":[";
+    bool first = true;
+    for (const auto& s : job.skills) {
+      if (!first)
+        os << ",";
+      os << s;
+      first = false;
+    }
+    os << "],\"priority\":" << job.priority << ",\"tws\":[";
+    for (size_t i = 0; i < job.tws.size(); ++i) {
+      if (i > 0)
+        os << ",";
+      os << job.tws[i];
+    }
+    os << "],\"description\":\"" << job.description << "\"}";
+    return os;
+  }
 };
 
 } // namespace vroom

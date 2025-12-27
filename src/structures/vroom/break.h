@@ -11,6 +11,7 @@ All rights reserved (see LICENSE).
 */
 
 #include <string>
+#include <iostream>
 
 #include "structures/typedefs.h"
 #include "structures/vroom/amount.h"
@@ -51,6 +52,22 @@ struct Break {
    * @return True if the load does not exceed the break's max load (if any).
    */
   bool is_valid_for_load(const Amount& load) const;
+
+  friend std::ostream& operator<<(std::ostream& os, const Break& b) {
+    os << "{\"id\":" << b.id << ",\"tws\":[";
+    for (size_t i = 0; i < b.tws.size(); ++i) {
+      if (i > 0)
+        os << ",";
+      os << b.tws[i];
+    }
+    os << "],\"service\":" << b.service << ",\"description\":\"" << b.description
+       << "\"";
+    if (b.max_load.has_value()) {
+      os << ",\"max_load\":" << b.max_load.value();
+    }
+    os << "}";
+    return os;
+  }
 };
 
 } // namespace vroom

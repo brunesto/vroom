@@ -13,6 +13,7 @@ All rights reserved (see LICENSE).
 #include <string>
 #include <tuple>
 #include <unordered_map>
+#include <iostream>
 
 #include "structures/typedefs.h"
 #include "structures/vroom/amount.h"
@@ -50,6 +51,13 @@ struct VehicleCosts {
   friend bool operator<(const VehicleCosts& lhs, const VehicleCosts& rhs) {
     return std::tie(lhs.fixed, lhs.per_hour, lhs.per_km, lhs.per_task_hour) <
            std::tie(rhs.fixed, rhs.per_hour, rhs.per_km, rhs.per_task_hour);
+  }
+
+  friend std::ostream& operator<<(std::ostream& os, const VehicleCosts& vc) {
+    os << "{\"fixed\":" << vc.fixed << ",\"per_hour\":" << vc.per_hour
+       << ",\"per_km\":" << vc.per_km
+       << ",\"per_task_hour\":" << vc.per_task_hour << "}";
+    return os;
   }
 };
 
@@ -217,6 +225,45 @@ struct Vehicle {
                                                  lhs.tw.length,
                                                  lhs.max_travel_time,
                                                  lhs.max_distance);
+  }
+
+  friend std::ostream& operator<<(std::ostream& os, const Vehicle& v) {
+    os << "{\"id\":" << v.id;
+    if (v.start.has_value()) {
+      os << ",\"start\":" << v.start.value();
+    }
+    if (v.end.has_value()) {
+      os << ",\"end\":" << v.end.value();
+    }
+    os << ",\"profile\":\"" << v.profile << "\""
+       << ",\"capacity\":" << v.capacity << ",\"skills\":[";
+    bool first = true;
+    for (const auto& s : v.skills) {
+      if (!first)
+        os << ",";
+      os << s;
+      first = false;
+    }
+    os << "],\"tw\":" << v.tw << ",\"breaks\":[";
+    for (size_t i = 0; i < v.breaks.size(); ++i) {
+      if (i > 0)
+        os << ",";
+      os << v.breaks[i];
+    }
+    os << "],\"description\":\"" << v.description << "\""
+       << ",\"costs\":" << v.costs << ",\"cost_wrapper\":" << v.cost_wrapper
+       << ",\"max_tasks\":" << v.max_tasks
+       << ",\"max_travel_time\":" << v.max_travel_time
+       << ",\"max_distance\":" << v.max_distance
+       << ",\"has_break_max_load\":"
+       << (v.has_break_max_load ? "true" : "false") << ",\"steps\":[";
+    for (size_t i = 0; i < v.steps.size(); ++i) {
+      if (i > 0)
+        os << ",";
+      os << v.steps[i];
+    }
+    os << "],\"type\":" << v.type << ",\"type_str\":\"" << v.type_str << "\"}";
+    return os;
   }
 };
 

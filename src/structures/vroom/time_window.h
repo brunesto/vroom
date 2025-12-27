@@ -10,6 +10,8 @@ All rights reserved (see LICENSE).
 
 */
 
+#include <iostream>
+
 #include "structures/typedefs.h"
 
 namespace vroom {
@@ -56,6 +58,11 @@ struct TimeWindow {
    * @return True if it is the default time window, false otherwise.
    */
   bool is_default() const;
+
+  friend std::ostream& operator<<(std::ostream& os, const TimeWindow& tw) {
+    os << "[" << tw.start << "," << tw.end << "]";
+    return os;
+  }
 
   friend bool operator<(const TimeWindow& lhs, const TimeWindow& rhs);
 };
