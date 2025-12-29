@@ -1,5 +1,6 @@
 {
     "version": "0.2.0",
+
     "configurations": [
 
         {
@@ -14,7 +15,20 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "preLaunchTask": "make build" // This must match the label in tasks.json
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Allow loading GDB plugins from any path",
+                    "text": "set auto-load safe-path /",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "make build" // This must match the label in tasks.json,
+           
         },
          {
             "name": "Run vroom-in.json",
