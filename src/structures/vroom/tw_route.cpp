@@ -837,13 +837,15 @@ bool TWRoute::is_valid_addition_for_tw(const Input& input,
   // spare some work.
   check_max_load = v.has_break_max_load && check_max_load;
 
+  // BRUNO: PreviousInfo and NextInfo structs hold state information: travel time +
+  // earliest end date for previous step and latest start date for next step.
   PreviousInfo current(0, 0);
   NextInfo next(0, 0);
 
   // Value initialization differ whether there are actually jobs added
   // or not.
   // LLM: Initialize the state (earliest start, location) for the insertion point
-  // LLM: and the state (latest start, travel) for the subsequent step.
+  // LLM: and update the state (latest start, travel) for the subsequent step.
   // LLM: This handles both insertion of new jobs and removal of existing jobs (when first_job == last_job).
   if (first_job < last_job) {
     current = previous_info(input, *first_job, first_rank);
@@ -911,8 +913,7 @@ bool TWRoute::is_valid_addition_for_tw(const Input& input,
   // Propagate earliest dates for all jobs and breaks in their
   // respective addition ranges.
   auto current_job = first_job;
-  // LLM:Iterate through the new jobs and any breaks that need to be scheduled.
-  // LLM:Determine the order of jobs and breaks and check for time window and load validity.
+  // LLM:Iterate through the breaks that need to be scheduled.check for time window and load validity.
   while (current_job != last_job || current_break != last_break) {
     if (current_job == last_job) {
       // Compute earliest end date for break after last inserted jobs.
@@ -956,12 +957,15 @@ bool TWRoute::is_valid_addition_for_tw(const Input& input,
       // Compute earliest end date for job after last inserted breaks.
       current.earliest += current.travel;
 
+      // BRUNO: find 1st valid time window 
       const auto j_tw = std::ranges::find_if(j.tws, [&](const auto& tw) {
         return current.earliest <= tw.end;
       });
       if (j_tw == j.tws.end()) {
         return false;
       }
+
+      // BRUNO: update earliest date with job action time
       const auto job_action_time = (j.index() == current.location_index)
                                      ? j.services[v_type]
                                      : j.setups[v_type] + j.services[v_type];
@@ -982,7 +986,8 @@ bool TWRoute::is_valid_addition_for_tw(const Input& input,
       }
       continue;
     }
-
+    // BRUNO: current_break != last_break
+    
     // We still have both jobs and breaks to go through, so decide on
     // ordering.
     const auto& b = v.breaks[current_break];

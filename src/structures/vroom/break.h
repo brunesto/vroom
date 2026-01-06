@@ -25,9 +25,11 @@ namespace vroom {
  */
 struct Break {
   Id id;
+  // BRUNO: a break can only occur within one of its time windows
   std::vector<TimeWindow> tws;
   Duration service;
   std::string description;
+  // BRUNO: I GUESS this is the max load allowed when taking the break
   std::optional<Amount> max_load;
 
   Break(Id id,
