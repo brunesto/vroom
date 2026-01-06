@@ -7,6 +7,7 @@ All rights reserved (see LICENSE).
 
 */
 
+#include "utils/log.h"
 #include "structures/vroom/raw_route.h"
 
 namespace vroom {
@@ -162,11 +163,20 @@ bool RawRoute::is_valid_addition_for_capacity(const Input&,
                                               const Amount& pickup,
                                               const Amount& delivery,
                                               const Index rank) const {
-  assert(rank <= route.size());
+  
+  TRACE_LOG("v:"<< v_rank << " is_valid_addition_for_capacity() ");
+  TRACE_LOG("\trank:" << rank << " capacity:" << capacity);
+  TRACE_LOG("\t_fwd_peaks[rank]:" << _fwd_peaks[rank]<< " delivery:" << delivery);
+  TRACE_LOG("\t_bwd_peaks[rank]:" << _bwd_peaks[rank]<< " pickup:" << pickup);
+  TRACE_LOG("\tpickup:" << pickup << " delivery:" << delivery);
+  
+                                                assert(rank <= route.size());
 
-  return (_fwd_peaks[rank] + delivery <= capacity) &&
+  auto retVal= (_fwd_peaks[rank] + delivery <= capacity) &&
          (_bwd_peaks[rank] + pickup <= capacity);
-}
+  TRACE_LOG(" is_valid_addition_for_capacity() returns " << retVal);
+  return retVal;
+  }
 
 bool RawRoute::is_valid_addition_for_load(const Input&,
                                           const Amount& pickup,

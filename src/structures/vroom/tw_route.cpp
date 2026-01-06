@@ -1040,6 +1040,7 @@ void TWRoute::replace(const Input& input,
                       const Iter last_job,
                       const Index first_rank,
                       const Index last_rank) {
+  
   assert(first_job <= last_job);
   assert(first_rank <= last_rank);
   TRACE_LOG("replace() "<< first_rank << " to " << last_rank << " with "
@@ -1480,18 +1481,23 @@ void TWRoute::replace(const Input& input,
   if (last_break > 0) {
     bwd_update_breaks_load_margin_from(input, current_job_rank);
   }
-
-  
+  TRACE_LOG("replace() done\n route:" << this->to_string(&input));
 
 }
-
-std::ostream& TWRoute::toString(std::ostream& os) const {  
+ std::ostream& TWRoute::toString(std::ostream& os, [[maybe_unused]] const Input * input) const {
     os << "TWRoute v_rank:" << v_rank << " route_size:" << route.size()
        << " earliest_end:" << earliest_end << std::endl;
     for (std::size_t i = 0; i < route.size(); ++i) {
+     
       os << std::setw(2)<< i << " " 
          << " @:"<<std::format("{:08}", earliest[i] )
-         << " job:"<<route[i]  << std::endl;
+         << " job:"<<route[i] ;
+      if (input!=nullptr){   
+        const auto& j = input->jobs[route[i]];
+        os << " loc:" << j.location.index();
+      }
+      os << std::endl;
+      
          
     }
     return os;

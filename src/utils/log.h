@@ -9,6 +9,9 @@ inline const char* get_basename(const char* path) {
   return file ? file + 1 : path;
 }
 
+//#define TRACE_LOG(x) ;
+//#define DEBUG_LOG(x) ;
+
 #define TRACE_LOG(x) std::cerr << "👾 [TRACE] " << get_basename(__FILE__) << ":" << __LINE__ << " -> " << x << std::endl
 #define DEBUG_LOG(x) std::cerr << "🪲 [DEBUG] " << get_basename(__FILE__) << ":" << __LINE__ << " -> " << x << std::endl
 #define INFO_LOG(x) std::cerr << " ℹ️ [INFO] " << get_basename(__FILE__) << ":" << __LINE__ << " -> " << x << std::endl

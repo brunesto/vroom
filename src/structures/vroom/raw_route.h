@@ -10,8 +10,10 @@ All rights reserved (see LICENSE).
 
 */
 
+#include <cstddef>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 
 #include "structures/typedefs.h"
 #include "structures/vroom/input/input.h"
@@ -274,9 +276,16 @@ public:
     // this is a bit of cpp gymnastics to simulate virtual override of the << stream operator.
     // It is NOT virtual, but it calls a virtual function, which can be overridden in derived classes.
     friend std::ostream& operator<<(std::ostream& os, const RawRoute& route) {
-        return route.toString(os);
+        return route.toString(os,nullptr);
     }
-  virtual std::ostream& toString(std::ostream& os) const {
+
+  std::string to_string(const Input* input = nullptr) const {
+    std::ostringstream oss;
+    toString(oss, input);
+    return oss.str();
+  }
+
+  virtual std::ostream& toString(std::ostream& os, [[maybe_unused]] const Input * input) const {
     os << "RawRoute v_rank:" << v_rank << " route_size:" << route.size()
        << " capacity:" << capacity << std::endl;
     for (std::size_t i = 0; i < route.size(); ++i) {

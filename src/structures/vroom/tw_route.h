@@ -251,7 +251,8 @@ public:
                Index first_rank,
                Index last_rank);
 
-  std::ostream& toString(std::ostream& os) const override; 
+ std::ostream& toString(std::ostream& os, [[maybe_unused]] const Input * input) const override;
+  
 };
 
 } // namespace vroom

@@ -10,10 +10,11 @@ All rights reserved (see LICENSE).
 
 #include "utils/log.h"
 #include <algorithm>
+#include <type_traits>
 
 #include "algorithms/heuristics/heuristics.h"
 #include "utils/helpers.h"
-
+#include <concepts>
 namespace vroom::heuristics {
 
 // Add seed job to route if required and return current cost of route
@@ -25,6 +26,8 @@ inline void seed_route(const Input& input,
                        const std::vector<std::vector<Eval>>& evals,
                        std::set<Index>& unassigned,
                        auto job_not_ok) {
+  static_assert(std::is_base_of<RawRoute, Route>::value,
+                "Route must be derived from RawRoute");
   
   assert(route.empty() && init != INIT::NONE);
   const auto v_rank = route.v_rank;
@@ -54,12 +57,12 @@ inline void seed_route(const Input& input,
         current_job.type == JOB_TYPE::DELIVERY || job_not_ok(job_rank)) {
       continue;
     }
-
+    // BRUNO: check that adding this job won't exceed vehicle max_tasks
     const bool is_pickup = (current_job.type == JOB_TYPE::PICKUP);   
     if (route.size() + (is_pickup ? 2 : 1) > vehicle.max_tasks) {
       continue;
     }
-
+    // BRUNO: before computing the insertion cost, check if this job is better than best found so far
     bool try_validity = false;// if try_validity remains false, it means we already have a better job in best_job_rank
 
     // LLM: Check if the current job is better than the best job found so far according to the chosen initialization criteria.
@@ -83,7 +86,7 @@ inline void seed_route(const Input& input,
     if (!try_validity) {
       continue;
     }
-
+    // BRUNO:  the current job could be  better than the best job found, so now check if the job can really be added to the route
     // LLM: Verify if the vehicle can perform the job within its range and capacity constraints.
     bool is_valid = (vehicle.ok_for_range_bounds(evals[job_rank][v_rank])) &&
                     route.is_valid_addition_for_capacity(input,
@@ -134,8 +137,11 @@ inline void seed_route(const Input& input,
       }
     }
   }
-
+  
   if (init_ok) {
+    // BRUNO: at this point we have chosen the best job according to criteria
+    DEBUG_LOG("v:"<< v_rank<< " best_job_rank:"<< best_job_rank<< " job:"<<input.jobs[best_job_rank]);
+
     // LLM: Add the selected seed job to the route.
     if (input.jobs[best_job_rank].type == JOB_TYPE::SINGLE) {
       route.add(input, best_job_rank, 0);
@@ -148,7 +154,11 @@ inline void seed_route(const Input& input,
       unassigned.erase(best_job_rank);
       unassigned.erase(best_job_rank + 1);
     }
+  } else {
+    DEBUG_LOG("v:"<< v_rank<< "No valid seed job found for route initialization.");
   }
+  TRACE_LOG("seed_route() done\n route:" << route.to_string(&input));
+
 }
 
 template <class Route> struct UnassignedCosts {
@@ -263,26 +273,33 @@ template <class Route> struct UnassignedCosts {
   }
 };
 
+static int fill_cnt=0;
+
 template <class Route>
+requires std::derived_from<Route, RawRoute> 
 inline Eval fill_route(const Input& input,
                        Route& route,
                        std::set<Index>& unassigned,
                        const std::vector<Cost>& regrets,
                        double lambda) {
-  DEBUG_LOG("fill_route() ");
+ 
   const auto v_rank = route.v_rank;
   const auto& vehicle = input.vehicles[v_rank];
-
+  
+  DEBUG_LOG("v:"<< v_rank << "fill_route() ");
   const bool init_route_is_empty = route.empty();
   Eval route_eval = utils::route_eval_for_vehicle(input, v_rank, route.route);
 
   // Store bounds to be able to cut out some loops.
   // LLM: Precompute costs to unassigned jobs to speed up the insertion process.
   UnassignedCosts unassigned_costs(input, route, unassigned);
-
   bool keep_going = true;
   // LLM: Continue inserting jobs until no more jobs can be added or no improvement is found.
   while (keep_going) {
+    fill_cnt++;
+    if (fill_cnt==3)
+      TRACE_LOG("yepa");
+    TRACE_LOG("v:"<< v_rank << " in fill_route fill_cnt:"<< fill_cnt<<" loop route_eval:"<<route_eval);
     keep_going = false;
     // LLM: Tracks the lowest insertion cost found so far in the current iteration. This cost includes the regret penalty.
     double best_cost = std::numeric_limits<double>::max();
@@ -294,6 +311,7 @@ inline Eval fill_route(const Input& input,
     Eval best_eval;
 
     for (const auto job_rank : unassigned) {
+      TRACE_LOG("v:"<< v_rank << " evaluate adding unassigned job "<< job_rank);
       if (!input.vehicle_ok_with_job(v_rank, job_rank)) {
         continue;
       }
@@ -357,7 +375,7 @@ inline Eval fill_route(const Input& input,
         std::vector<Eval> d_adds(route.route.size() + 1);
         std::vector<unsigned char> valid_delivery_insertions(
           route.route.size() + 1);
-
+        // d rank is a rank inside the route
         for (unsigned d_rank = 0; d_rank <= route.route.size(); ++d_rank) {
           d_adds[d_rank] = utils::addition_eval(input,
                                                 job_rank + 1,
@@ -369,8 +387,8 @@ inline Eval fill_route(const Input& input,
                                                             job_rank + 1,
                                                             d_rank);
         }
-
         for (Index pickup_r = 0; pickup_r <= route.size(); ++pickup_r) {
+          // evaluate adding job_rank in given route at given index pickup_r
           const auto p_add = utils::addition_eval(input,
                                                   job_rank,
                                                   vehicle,
@@ -466,7 +484,12 @@ inline Eval fill_route(const Input& input,
         }
       }
     }
-
+    DEBUG_LOG("v:"<< v_rank << " best:");
+    DEBUG_LOG(" cost:"<< best_cost << " job_rank:"<< best_job_rank );
+    DEBUG_LOG(" pickup_r:"<< best_pickup_r << " delivery_r:"<< best_delivery_r );
+    DEBUG_LOG(" modified_delivery:"<<  best_modified_delivery);
+    DEBUG_LOG(" delta eval"<< best_eval );
+    
     if (best_cost < std::numeric_limits<double>::max()) {
       const auto& best_job = input.jobs[best_job_rank];
       // LLM: Perform the actual insertion of the best single job found.
@@ -515,7 +538,7 @@ inline Eval fill_route(const Input& input,
     // Account for fixed cost if we actually filled an empty route.
     route_eval.cost += vehicle.fixed_cost();
   }
-  TRACE_LOG("replace() done\n eval:"<< route_eval<< "\n route:" << route);
+  TRACE_LOG("replace() done\n eval:"<< route_eval<< "\n route:" << route.to_string(&input));
   return route_eval;
 }
 
@@ -560,10 +583,11 @@ Eval basic(const Input& input,
                              });
     break;
   }
-
+  // BRUNO:evals[j][v] evaluates fetching job j (and optionally associated delivery) in an empty route from vehicle at rank v 
   const auto& evals = input.jobs_vehicles_evals();
 
-  // LLM: Stores the regret value for each job and vehicle. regrets[v][j] is the cost of assigning job j to the best alternative vehicle after vehicle v.
+  // LLM: Stores the regret value for each job and vehicle. 
+  // regrets[v][j] is the cost of assigning job j to the best alternative vehicle after vehicle v.
   // regrets[v][j] holds the min cost for reaching job j in an empty
   // route across all remaining vehicles **after** vehicle at rank v
   // in vehicles_ranks. Regrets are only computed for available
@@ -609,7 +633,7 @@ Eval basic(const Input& input,
   }
 
   Eval sol_eval;
-  // BRUNO: build solution by iterating over vehicles
+  // BRUNO: build solution by iterating over vehicles, one route per vehicle
   // LLM: Construct routes for each vehicle in the sorted order.
   for (Index v = 0; v < nb_vehicles && !unassigned.empty(); ++v) {
     auto v_rank = vehicles_ranks[v];

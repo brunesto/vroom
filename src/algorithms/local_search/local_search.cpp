@@ -375,7 +375,7 @@ void LocalSearch<Route,
                  RouteSplit,
                  PriorityReplace,
                  TSPFix>::run_ls_step() {
-  DEBUG_LOG("run_ls_step()");
+  DEBUG_LOG("run_ls_step()" );
   // -- 1)  Initialization ------------------------------------------------------------
   // Store best move involving a pair of routes.
   std::vector<std::vector<std::unique_ptr<Operator>>> best_ops(_nb_vehicles);
@@ -646,8 +646,9 @@ void LocalSearch<Route,
     // LLM: Try to swap sequences of jobs between two different routes (source and target).
     // LLM: This operator helps in exchanging segments of routes to improve overall cost.
     for (const auto& [source, target] : s_t_pairs) {
+      // BRUNO: target and source are vehicle indices
       if (target <= source || // This operator is symmetric.
-          best_priorities[source] > 0 || best_priorities[target] > 0 ||
+          best_priorities[source] > 0 || best_priorities[target] > 0 || // BRUNO: so it get skipped if we dont use priorities?
           _sol[source].size() < 2 || _sol[target].size() < 2 ||
           (_input.all_locations_have_coords() &&
            _input.vehicles[source].has_same_profile(_input.vehicles[target]) &&

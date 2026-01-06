@@ -41,7 +41,7 @@ std::vector<Route> set_init_sol(const Input& input,
                                 std::unordered_set<Index>& init_assigned) {
   std::vector<Route> init_sol;
   init_sol.reserve(input.vehicles.size());
-
+  // BRUNO: bit puzzled that it creates RawRoutes instead of TWRoutes
   for (Index v = 0; v < input.vehicles.size(); ++v) {
     init_sol.emplace_back(input, v, input.zero_amount().size());
   }
@@ -72,6 +72,7 @@ template <class Route> struct SolvingContext {
   // LLM: Vector of vehicle indices. Computed in the constructor as a sequence 0..N. Purpose: used by heuristics to iterate over vehicles, potentially in different orders.
   std::vector<Index> vehicles_ranks;
   // LLM: Vector of solutions, one for each search thread. Initialized with `init_sol`. Purpose: stores the evolving solution for each parallel search run.
+  // BRUNO: so there is not a solution class per se, just a vector of routes
   std::vector<std::vector<Route>> solutions;
   // LLM: Vector of solution indicators (cost, unassigned count, etc.). Initialized with size `nb_searches`. Purpose: stores quality metrics for each solution to easily find the best one.
   std::vector<utils::SolutionIndicators> sol_indicators;
@@ -95,6 +96,7 @@ template <class Route> struct SolvingContext {
                          });
 
     // Heuristics will operate on all vehicles.
+    // BRUNO: vehicles_ranks is just [0, 1, 2, ..., num_vehicles-1]
     std::iota(vehicles_ranks.begin(), vehicles_ranks.end(), 0);
   }
 

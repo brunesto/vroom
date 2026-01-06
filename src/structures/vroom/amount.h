@@ -175,6 +175,18 @@ public:
     }
     return *this;
   }
+
+  friend std::ostream& operator<<(std::ostream& os, const Amount& amount) {
+    os << "[";
+    for (std::size_t i = 0; i < amount.elems.size(); ++i) {
+      os << amount.elems[i];
+      if (i < amount.elems.size() - 1) {
+        os << ",";
+      }
+    }
+    os << "]";
+    return os;
+  }
 };
 
 template <typename E1, typename E2>
