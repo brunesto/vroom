@@ -14,6 +14,15 @@ All rights reserved (see LICENSE).
 #include "utils/log.h"
 namespace vroom {
 
+/** LLM: 
+ * @brief Constructor for a route with time windows.
+ * 
+ * Initializes the route with a single vehicle and no jobs.
+ * Computationally, it establishes the baseline validity of the empty route by:
+ * 1. Setting up initial earliest and latest dates for breaks based on vehicle time windows.
+ * 2. Calculating forward and backward load margins for breaks to ensure capacity constraints are met.
+ * 3. Verifying consistency of break time windows and service times.
+ */
 TWRoute::TWRoute(const Input& input, Index v, unsigned amount_size)
   : RawRoute(input, v, amount_size),
     v_start(input.vehicles[v].tw.start),
@@ -103,6 +112,13 @@ TWRoute::TWRoute(const Input& input, Index v, unsigned amount_size)
   }
 }
 
+/** LLM: 
+ * @brief Retrieves information about the step preceding a given rank in the route.
+ * 
+ * This helper calculates the state (earliest completion time, location) after the job
+ * at `rank - 1`. If `rank` is 0, it considers the vehicle start location.
+ * This is crucial for evaluating travel times and time window feasibility for an insertion at `rank`.
+ */
 PreviousInfo TWRoute::previous_info(const Input& input,
                                     const Index job_rank,
                                     const Index rank) const {
@@ -127,6 +143,13 @@ PreviousInfo TWRoute::previous_info(const Input& input,
   return previous;
 }
 
+/** LLM: 
+ * @brief Retrieves information about the step following a given rank in the route.
+ * 
+ * This helper calculates the state (latest start time) required for the job at `rank` (or whatever is at `rank`).
+ * If `rank` is the end of the route, it considers the vehicle end location.
+ * Used to determine the deadline for the current step to ensure subsequent steps remain feasible.
+ */
 NextInfo TWRoute::next_info(const Input& input,
                             const Index job_rank,
                             const Index rank) const {
@@ -148,6 +171,15 @@ NextInfo TWRoute::next_info(const Input& input,
   return next;
 }
 
+/** LLM: 
+ * @brief Propagates earliest start times forward from a specific rank.
+ * 
+ * Updates the `earliest` validity intervals for all subsequent jobs and breaks in the route.
+ * It ensures that each step starts no earlier than allowed by:
+ * 1. The completion of the previous step plus travel time.
+ * 2. Its own time window start.
+ * 3. Any intervening breaks.
+ */
 void TWRoute::fwd_update_earliest_from(const Input& input, Index rank) {
   const auto& v = input.vehicles[v_rank];
 
@@ -263,6 +295,15 @@ void TWRoute::fwd_update_earliest_from(const Input& input, Index rank) {
   }
 }
 
+/** LLM: 
+ * @brief Propagates latest start times backward from a specific rank.
+ * 
+ * Updates the `latest` validity intervals for all preceding jobs and breaks up to the start of the route.
+ * It ensures that each step starts no later than allowed to still meet:
+ * 1. The start of the subsequent step minus travel time and service time.
+ * 2. Its own time window end.
+ * 3. Any intervening breaks.
+ */
 void TWRoute::bwd_update_latest_from(const Input& input, Index rank) {
   const auto& v = input.vehicles[v_rank];
 
@@ -363,6 +404,12 @@ void TWRoute::bwd_update_latest_from(const Input& input, Index rank) {
   }
 }
 
+/** LLM: 
+ * @brief Updates the latest valid start time for the last job in the route.
+ * 
+ * Specifically handles the constraint propagation from the vehicle's end time and any breaks
+ * occurring after the last job. This anchors the backward propagation process.
+ */
 void TWRoute::update_last_latest_date(const Input& input) {
   assert(!route.empty());
 
@@ -414,6 +461,12 @@ void TWRoute::update_last_latest_date(const Input& input) {
   latest.back() = std::min(next.latest, j_tw->end);
 }
 
+/** LLM: 
+ * @brief Recalculates action times (setup + service) for jobs starting from a rank.
+ * 
+ * Setup time is context-dependent (depends on the previous location). This function ensures
+ * that if a job's predecessor changes, the setup cost is correctly applied or removed.
+ */
 void TWRoute::fwd_update_action_time_from(const Input& input, Index rank) {
   Index current_index = input.jobs[route[rank]].index();
 
@@ -433,6 +486,13 @@ void TWRoute::fwd_update_action_time_from(const Input& input, Index rank) {
   }
 }
 
+/** LLM: 
+ * @brief Updates forward cumulative load margins for breaks.
+ * 
+ * Re-evaluates how much additional load can be carried *before* violating the max load
+ * constraint of any subsequent break. This creates a "safety margin" lookup for quick feasibility checks
+ * during insertions.
+ */
 void TWRoute::fwd_update_breaks_load_margin_from(const Input& input,
                                                  Index rank) {
   const auto& v = input.vehicles[v_rank];
@@ -472,6 +532,12 @@ void TWRoute::fwd_update_breaks_load_margin_from(const Input& input,
   }
 }
 
+/** LLM: 
+ * @brief Updates backward cumulative load margins for breaks.
+ * 
+ * Similar to the forward update, but evaluates margins from the end of the route backwards.
+ * Used to quickly check if picking up load at a certain point will violate a later break's capacity.
+ */
 void TWRoute::bwd_update_breaks_load_margin_from(const Input& input,
                                                  Index rank) {
   const auto& v = input.vehicles[v_rank];
@@ -511,6 +577,12 @@ void TWRoute::bwd_update_breaks_load_margin_from(const Input& input,
   }
 }
 
+/** LLM: 
+ * @brief Constructor for the OrderChoice helper.
+ * 
+ * Initializes the choice context by finding the first feasible time windows for both
+ * the job and the break relative to the previous step's completion.
+ */
 OrderChoice::OrderChoice(const Input& input,
                          const Index job_rank,
                          const Break& b,
@@ -528,6 +600,14 @@ OrderChoice::OrderChoice(const Input& input,
     })) {
 }
 
+/** LLM: 
+ * @brief Determines the optimal order for a job and a break that need to happen in the same interval.
+ * 
+ * When a break falls between two jobs (or start/end), and we insert a new job there, we must decide
+ * whether to schedule: `Previous -> Job -> Break -> Next` or `Previous -> Break -> Job -> Next`.
+ * This function evaluates time windows and load constraints to determine which orderings are valid
+ * and prefers the one that minimizes delays or fits specific job types (pickup/delivery).
+ */
 OrderChoice TWRoute::order_choice(const Input& input,
                                   const Index job_rank,
                                   const Duration job_action_time,
@@ -729,6 +809,17 @@ OrderChoice TWRoute::order_choice(const Input& input,
   return oc;
 }
 
+/** LLM: 
+ * @brief Checks if adding a sequence of jobs is feasible regarding time windows and breaks.
+ * 
+ * Simulates the insertion of a range of jobs into the route at a specific rank.
+ * It verifies:
+ * 1. Time window feasibility for all new jobs and displaced breaks.
+ * 2. Load constraints (optional).
+ * 3. Whether the insertion disrupts the feasibility of subsequent steps in the route.
+ * 
+ * This is a "dry run" check that does not modify the route.
+ */
 template <std::forward_iterator Iter>
 bool TWRoute::is_valid_addition_for_tw(const Input& input,
                                        const Amount& delivery,
@@ -1033,6 +1124,16 @@ bool TWRoute::is_valid_addition_for_tw(const Input& input,
   return current.earliest + next.travel <= next.latest;
 }
 
+/** LLM: 
+ * @brief Modifies the route by replacing a range of jobs with a new sequence.
+ * 
+ * This is the core mutation function. It handles:
+ * 1. Removing a range of existing jobs (can be empty for simple insertion).
+ * 2. Inserting a new range of jobs (can be empty for deletion).
+ * 3. Updating route structures: `route`, `earliest`, `latest`, `action_time`.
+ * 4. Re-calculating break positions and validity.
+ * 5. Propagating time window and load updates forward and backward to maintain route consistency.
+ */
 template <std::random_access_iterator Iter>
 void TWRoute::replace(const Input& input,
                       const Amount& delivery,
