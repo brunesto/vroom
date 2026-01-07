@@ -51,17 +51,17 @@ Eval route_eval_for_vehicle(const Input& input,
     auto jobs_task_duration = first_job.services[v.type];
 
     if (v.has_start()) {
-      eval += v.eval(v.start.value().index(), first_job.index());
+      eval += v.eval(v.start.value().index(), first_job.location_index());
     }
 
-    if (!v.has_start() || v.start.value().index() != first_job.index()) {
+    if (!v.has_start() || v.start.value().index() != first_job.location_index()) {
       jobs_task_duration += first_job.setups[v.type];
     }
 
-    Index previous_index = input.jobs[route.front()].index();
+    Index previous_index = input.jobs[route.front()].location_index();
     for (Index i = 1; i < route.size(); ++i) {
       const auto& current_job = input.jobs[route[i]];
-      const auto current_index = current_job.index();
+      const auto current_index = current_job.location_index();
 
       eval += v.eval(previous_index, current_index);
 
@@ -201,7 +201,7 @@ Solution format_solution(const Input& input, const RawSolution& raw_routes) {
     const auto start_loc = v.has_start() ? v.start.value() : first_job.location;
     steps.emplace_back(STEP_TYPE::START, start_loc, current_load);
     if (v.has_start()) {
-      const auto next_leg = v.eval(v.start.value().index(), first_job.index());
+      const auto next_leg = v.eval(v.start.value().index(), first_job.location_index());
       ETA += next_leg.duration;
       eval_sum += next_leg;
     }
@@ -210,9 +210,9 @@ Solution format_solution(const Input& input, const RawSolution& raw_routes) {
     assert(input.vehicle_ok_with_job(i, route.front()));
 
     const auto first_job_setup =
-      (first_job.index() == previous_location) ? 0 : first_job.setups[v.type];
+      (first_job.location_index() == previous_location) ? 0 : first_job.setups[v.type];
     setup += first_job_setup;
-    previous_location = first_job.index();
+    previous_location = first_job.location_index();
 
     const auto first_job_service = first_job.services[v.type];
     service += first_job_service;
@@ -242,17 +242,17 @@ Solution format_solution(const Input& input, const RawSolution& raw_routes) {
     for (std::size_t r = 0; r < route.size() - 1; ++r) {
       assert(input.vehicle_ok_with_job(i, route[r + 1]));
       const auto next_leg =
-        v.eval(input.jobs[route[r]].index(), input.jobs[route[r + 1]].index());
+        v.eval(input.jobs[route[r]].location_index(), input.jobs[route[r + 1]].location_index());
       ETA += next_leg.duration;
       eval_sum += next_leg;
 
       const auto& current_job = input.jobs[route[r + 1]];
 
-      const auto current_setup = (current_job.index() == previous_location)
+      const auto current_setup = (current_job.location_index() == previous_location)
                                    ? 0
                                    : current_job.setups[v.type];
       setup += current_setup;
-      previous_location = current_job.index();
+      previous_location = current_job.location_index();
 
       const auto current_service = current_job.services[v.type];
       service += current_service;
@@ -285,7 +285,7 @@ Solution format_solution(const Input& input, const RawSolution& raw_routes) {
     const auto end_loc = v.has_end() ? v.end.value() : last_job.location;
     steps.emplace_back(STEP_TYPE::END, end_loc, current_load);
     if (v.has_end()) {
-      const auto next_leg = v.eval(last_job.index(), v.end.value().index());
+      const auto next_leg = v.eval(last_job.location_index(), v.end.value().index());
       ETA += next_leg.duration;
       eval_sum += next_leg;
     }
@@ -356,10 +356,10 @@ Route format_route(const Input& input,
     Duration remaining_travel_time;
     if (r < tw_r.route.size()) {
       remaining_travel_time =
-        v.duration(previous_job.index(), input.jobs[tw_r.route[r]].index());
+        v.duration(previous_job.location_index(), input.jobs[tw_r.route[r]].location_index());
     } else {
       remaining_travel_time =
-        (v.has_end()) ? v.duration(previous_job.index(), v.end.value().index())
+        (v.has_end()) ? v.duration(previous_job.location_index(), v.end.value().index())
                       : 0;
     }
 
@@ -394,9 +394,9 @@ Route format_route(const Input& input,
 
     const bool same_location =
       (r > 1 &&
-       input.jobs[tw_r.route[r - 2]].index() == previous_job.index()) ||
+       input.jobs[tw_r.route[r - 2]].location_index() == previous_job.location_index()) ||
       (r == 1 && v.has_start() &&
-       v.start.value().index() == previous_job.index());
+       v.start.value().index() == previous_job.location_index());
     const auto current_setup = same_location ? 0 : previous_job.setups[v.type];
 
     const Duration diff =
@@ -422,7 +422,7 @@ Route format_route(const Input& input,
   // Now pack everything ASAP based on first job start date.
   Duration remaining_travel_time =
     (v.has_start())
-      ? v.duration(v.start.value().index(), input.jobs[tw_r.route[0]].index())
+      ? v.duration(v.start.value().index(), input.jobs[tw_r.route[0]].location_index())
       : 0;
 
   // Take into account timing constraints for breaks before first job.
@@ -498,7 +498,7 @@ Route format_route(const Input& input,
   // Go through the whole route again to set jobs/breaks ASAP given
   // the latest possible start time.
   Eval current_eval = v.has_start() ? v.eval(v.start.value().index(),
-                                             input.jobs[tw_r.route[0]].index())
+                                             input.jobs[tw_r.route[0]].location_index())
                                     : Eval();
 
   Duration travel_time = current_eval.duration;
@@ -512,7 +512,7 @@ Route format_route(const Input& input,
       // For r == 0, travel_time already holds the relevant value
       // depending on whether there is a start.
       current_eval =
-        v.eval(input.jobs[tw_r.route[r - 1]].index(), current_job.index());
+        v.eval(input.jobs[tw_r.route[r - 1]].location_index(), current_job.location_index());
       travel_time = current_eval.duration;
     }
 
@@ -602,11 +602,11 @@ Route format_route(const Input& input,
     service += current_service;
     priority += current_job.priority;
 
-    const auto current_setup = (current_job.index() == previous_location)
+    const auto current_setup = (current_job.location_index() == previous_location)
                                  ? 0
                                  : current_job.setups[v.type];
     setup += current_setup;
-    previous_location = current_job.index();
+    previous_location = current_job.location_index();
 
     current_load += current_job.pickup;
     current_load -= current_job.delivery;
@@ -671,7 +671,7 @@ Route format_route(const Input& input,
   }
 
   // Handle breaks after last job.
-  current_eval = (v.has_end()) ? v.eval(input.jobs[tw_r.route.back()].index(),
+  current_eval = (v.has_end()) ? v.eval(input.jobs[tw_r.route.back()].location_index(),
                                         v.end.value().index())
                                : Eval();
   travel_time = current_eval.duration;

@@ -135,12 +135,12 @@ PreviousInfo TWRoute::previous_info(const Input& input,
   if (rank > 0) {
     const auto& previous_job = input.jobs[route[rank - 1]];
     previous.earliest_end = earliest[rank - 1] + action_time[rank - 1];
-    previous.travel_time_from_prev = v.duration(previous_job.index(), j.index());
+    previous.travel_time_from_prev = v.duration(previous_job.location_index(), j.location_index());
     previous.location_index = previous_job.location.index();
   } else {
     if (has_start) {
       previous.location_index = v.start.value().index();
-      previous.travel_time_from_prev = v.duration(previous.location_index, j.index());
+      previous.travel_time_from_prev = v.duration(previous.location_index, j.location_index());
     }
   }
 
@@ -165,11 +165,11 @@ NextInfo TWRoute::next_info(const Input& input,
   // LLM:to calculate travel time from the current job.
   if (rank == route.size()) {
     if (has_end) {
-      next.travel_time_to = v.duration(j.index(), v.end.value().index());
+      next.travel_time_to = v.duration(j.location_index(), v.end.value().index());
     }
   } else {
     next.latest_start = latest[rank];
-    next.travel_time_to = v.duration(j.index(), input.jobs[route[rank]].index());
+    next.travel_time_to = v.duration(j.location_index(), input.jobs[route[rank]].location_index());
   }
 
   return next;
@@ -196,7 +196,7 @@ void TWRoute::fwd_update_earliest_from(const Input& input, Index rank) {
   for (Index i = rank + 1; i < route.size(); ++i) {
     const auto& next_j = input.jobs[route[i]];
     Duration remaining_travel_time =
-      v.duration(input.jobs[route[i - 1]].index(), next_j.index());
+      v.duration(input.jobs[route[i - 1]].location_index(), next_j.location_index());
     Duration previous_action_time = action_time[i - 1];
 
     // Update earliest dates and margins for breaks.
@@ -260,7 +260,7 @@ void TWRoute::fwd_update_earliest_from(const Input& input, Index rank) {
     const Index i = route.size();
     Duration remaining_travel_time =
       (v.has_end())
-        ? v.duration(input.jobs[route[i - 1]].index(), v.end.value().index())
+        ? v.duration(input.jobs[route[i - 1]].location_index(), v.end.value().index())
         : 0;
 
     Duration previous_action_time = action_time[i - 1];
@@ -320,7 +320,7 @@ void TWRoute::bwd_update_latest_from(const Input& input, Index rank) {
   for (Index next_i = rank; next_i > 0; --next_i) {
     const auto& previous_j = input.jobs[route[next_i - 1]];
     Duration remaining_travel_time =
-      v.duration(previous_j.index(), input.jobs[route[next_i]].index());
+      v.duration(previous_j.location_index(), input.jobs[route[next_i]].location_index());
 
     // Update latest dates and margins for breaks.
     assert(breaks_at_rank[next_i] <= breaks_counts[next_i]);
@@ -472,13 +472,13 @@ void TWRoute::update_last_latest_date(const Input& input) {
  * that if a job's predecessor changes, the setup cost is correctly applied or removed.
  */
 void TWRoute::fwd_update_action_time_from(const Input& input, Index rank) {
-  Index current_index = input.jobs[route[rank]].index();
+  Index current_index = input.jobs[route[rank]].location_index();
 
   // LLM:Update action times (setup + service) for jobs starting from the given rank.
   // LLM:Setup time is included only if the location changes from the previous job.
   for (Index i = rank + 1; i < route.size(); ++i) {
     const auto& next_j = input.jobs[route[i]];
-    const auto next_index = next_j.index();
+    const auto next_index = next_j.location_index();
 
     const auto next_action_time =
       (next_index == current_index)
@@ -738,7 +738,7 @@ OrderChoice TWRoute::order_choice(const Input& input,
     assert(matching_d.type == JOB_TYPE::DELIVERY);
 
     // Try pickup -> break -> delivery.
-    auto delivery_travel = v.duration(j.index(), matching_d.index());
+    auto delivery_travel = v.duration(j.location_index(), matching_d.location_index());
     if (job_then_break_margin < delivery_travel) {
       delivery_travel -= job_then_break_margin;
     } else {
@@ -759,7 +759,7 @@ OrderChoice TWRoute::order_choice(const Input& input,
 
     // Previous order not doable, so try pickup -> delivery -> break.
     const Duration delivery_candidate =
-      earliest_job_end + v.duration(j.index(), matching_d.index());
+      earliest_job_end + v.duration(j.location_index(), matching_d.location_index());
     if (const auto d_tw = std::ranges::find_if(matching_d.tws,
                                                [&](const auto& tw) {
                                                  return delivery_candidate <=
@@ -767,7 +767,7 @@ OrderChoice TWRoute::order_choice(const Input& input,
                                                });
         d_tw != matching_d.tws.end()) {
       const auto matching_d_action_time =
-        (matching_d.index() == j.index())
+        (matching_d.location_index() == j.location_index())
           ? matching_d.services[v_type]
           : matching_d.setups[v_type] + matching_d.services[v_type];
 
@@ -863,15 +863,15 @@ bool TWRoute::is_valid_addition_for_tw(const Input& input,
     if (first_rank > 0) {
       const auto& previous_job = input.jobs[route[first_rank - 1]];
       current.earliest_end = earliest[first_rank - 1] + action_time[first_rank - 1];
-      current.location_index = previous_job.index();
+      current.location_index = previous_job.location_index();
 
       if (last_rank < route.size()) {
         lastJobAtLastRank.latest_start = latest[last_rank];
-        lastJobAtLastRank.travel_time_to = v.duration(previous_job.index(),
-                                 input.jobs[route[last_rank]].index());
+        lastJobAtLastRank.travel_time_to = v.duration(previous_job.location_index(),
+                                 input.jobs[route[last_rank]].location_index());
       } else {
         if (has_end) {
-          lastJobAtLastRank.travel_time_to = v.duration(previous_job.index(), v.end.value().index());
+          lastJobAtLastRank.travel_time_to = v.duration(previous_job.location_index(), v.end.value().index());
         }
       }
     } else {
@@ -881,7 +881,7 @@ bool TWRoute::is_valid_addition_for_tw(const Input& input,
         if (has_start) {
           current.location_index = v.start.value().index();
           lastJobAtLastRank.travel_time_to = v.duration(v.start.value().index(),
-                                   input.jobs[route[last_rank]].index());
+                                   input.jobs[route[last_rank]].location_index());
         }
       } else {
         // Emptying the whole route is valid.
@@ -978,11 +978,11 @@ bool TWRoute::is_valid_addition_for_tw(const Input& input,
       }
 
       // BRUNO: update earliest date with job action time
-      const auto job_action_time = (j.index() == current.location_index)
+      const auto job_action_time = (j.location_index() == current.location_index)
                                      ? j.services[v_type]
                                      : j.setups[v_type] + j.services[v_type];
       TTRACE_LOG("    job action time: "<<t2str(job_action_time));
-      current.location_index = j.index();
+      current.location_index = j.location_index();
       TTRACE_LOG("    tw "<<t2str(j_tw->start)<<"-"<< t2str(j_tw->end)<<" , waiting for tw: "<<t2str(j_tw->start<current.earliest_end?0:j_tw->start-current.earliest_end));
       current.earliest_end =
         std::max(current.earliest_end, j_tw->start) + job_action_time;
@@ -996,7 +996,7 @@ bool TWRoute::is_valid_addition_for_tw(const Input& input,
       if (current_job != last_job) {
         // Record for travel time to next current job.
         current.travel_time_from_prev =
-          v.duration(j.index(), input.jobs[*current_job].index());
+          v.duration(j.location_index(), input.jobs[*current_job].location_index());
       }
       continue;
     }
@@ -1005,7 +1005,7 @@ bool TWRoute::is_valid_addition_for_tw(const Input& input,
     // We still have both jobs and breaks to go through, so decide on
     // ordering.
     const auto& b = v.breaks[current_break];
-    const auto job_action_time = (j.index() == current.location_index)
+    const auto job_action_time = (j.location_index() == current.location_index)
                                    ? j.services[v_type]
                                    : j.setups[v_type] + j.services[v_type];
 
@@ -1047,7 +1047,7 @@ bool TWRoute::is_valid_addition_for_tw(const Input& input,
       ++current_break;
     }
     if (oc.add_job_first) {
-      current.location_index = j.index();
+      current.location_index = j.location_index();
 
       current.earliest_end =
         std::max(current.earliest_end + current.travel_time_from_prev, oc.j_tw->start) +
@@ -1062,7 +1062,7 @@ bool TWRoute::is_valid_addition_for_tw(const Input& input,
       if (current_job != last_job) {
         // Account for travel time to next current job.
         current.travel_time_from_prev =
-          v.duration(j.index(), input.jobs[*current_job].index());
+          v.duration(j.location_index(), input.jobs[*current_job].location_index());
       }
     }
   }
@@ -1083,7 +1083,7 @@ bool TWRoute::is_valid_addition_for_tw(const Input& input,
   // to check all subsequent jobs, only the first one after the replaced range.
 
   if (last_rank < route.size() &&
-      input.jobs[route[last_rank]].index() != current.location_index) {
+      input.jobs[route[last_rank]].location_index() != current.location_index) {
     // There is a task right after replace range and setup time does
     // apply to it.
     const auto& j_after = input.jobs[route[last_rank]];
@@ -1189,14 +1189,14 @@ void TWRoute::replace(const Input& input,
 
     if (first_rank > 0) {
       const auto& previous_job = input.jobs[route[first_rank - 1]];
-      const auto previous_index = previous_job.index();
+      const auto previous_index = previous_job.location_index();
       current.earliest_end = earliest[first_rank - 1] + action_time[first_rank - 1];
       current.location_index = previous_index;
 
       if (last_rank < route.size()) {
         next.latest_start = latest[last_rank];
         next.travel_time_to =
-          v.duration(previous_index, input.jobs[route[last_rank]].index());
+          v.duration(previous_index, input.jobs[route[last_rank]].location_index());
       } else {
         if (has_end) {
           next.travel_time_to = v.duration(previous_index, v.end.value().index());
@@ -1208,7 +1208,7 @@ void TWRoute::replace(const Input& input,
         if (has_start) {
           current.location_index = v.start.value().index();
           next.travel_time_to = v.duration(v.start.value().index(),
-                                   input.jobs[route[last_rank]].index());
+                                   input.jobs[route[last_rank]].location_index());
         }
       }
     }
@@ -1380,10 +1380,10 @@ void TWRoute::replace(const Input& input,
       breaks_at_rank[current_job_rank] = breaks_before;
       breaks_counts[current_job_rank] = previous_breaks_counts + breaks_before;
 
-      action_time[current_job_rank] = (j.index() == current.location_index)
+      action_time[current_job_rank] = (j.location_index() == current.location_index)
                                         ? j.services[v_type]
                                         : j.setups[v_type] + j.services[v_type];
-      current.location_index = j.index();
+      current.location_index = j.location_index();
       current.earliest_end += action_time[current_job_rank];
 
       ++current_job_rank;
@@ -1397,7 +1397,7 @@ void TWRoute::replace(const Input& input,
       if (current_job != last_job) {
         // Account for travel time to next current job.
         current.travel_time_from_prev =
-          v.duration(j.index(), input.jobs[*current_job].index());
+          v.duration(j.location_index(), input.jobs[*current_job].location_index());
       }
       continue;
     }
@@ -1406,7 +1406,7 @@ void TWRoute::replace(const Input& input,
     // ordering.
     const auto& b = v.breaks[current_break];
 
-    const auto job_action_time = (j.index() == current.location_index)
+    const auto job_action_time = (j.location_index() == current.location_index)
                                    ? j.services[v_type]
                                    : j.setups[v_type] + j.services[v_type];
 
@@ -1467,7 +1467,7 @@ void TWRoute::replace(const Input& input,
 
       action_time[current_job_rank] = job_action_time;
       current.earliest_end += job_action_time;
-      current.location_index = j.index();
+      current.location_index = j.location_index();
 
       ++current_job_rank;
       previous_breaks_counts += breaks_before;
@@ -1480,7 +1480,7 @@ void TWRoute::replace(const Input& input,
       if (current_job != last_job) {
         // Account for travel time to next current job.
         current.travel_time_from_prev =
-          v.duration(j.index(), input.jobs[*current_job].index());
+          v.duration(j.location_index(), input.jobs[*current_job].location_index());
       }
     }
   }
@@ -1531,7 +1531,7 @@ void TWRoute::replace(const Input& input,
       // current_job_rank is the rank of the first non-replaced job.
       const auto& j = input.jobs[route[current_job_rank]];
 
-      const auto new_action_time = (j.index() == current.location_index)
+      const auto new_action_time = (j.location_index() == current.location_index)
                                      ? j.services[v_type]
                                      : j.setups[v_type] + j.services[v_type];
       assert(action_time[current_job_rank] == j.services[v_type] ||
@@ -1614,7 +1614,7 @@ void TWRoute::replace(const Input& input,
     for (std::size_t i = 0; i < route.size(); ++i) {
      
       os << std::setw(2)<< i << " " 
-         << " @:"<<std::format("{:08}", earliest[i] )
+         << " @:"<<t2str(earliest[i] )
          << " job:"<<route[i] ;
       if (input!=nullptr){   
         const auto& j = input->jobs[route[i]];

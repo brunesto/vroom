@@ -14,7 +14,7 @@ All rights reserved (see LICENSE).
 #include <iostream>
 
 #include "structures/typedefs.h"
-
+#include "utils/log.h"
 namespace vroom {
 
 /**
@@ -82,7 +82,7 @@ struct Eval {
   friend bool operator==(const Eval& lhs, const Eval& rhs) = default;
 
   friend std::ostream& operator<<(std::ostream& os, const Eval& eval) {
-    os << "{\"cost\":" << eval.cost << ",\"duration\":" << eval.duration
+    os << "{\"cost\":" << eval.cost << ",\"duration\":" << t2str(eval.duration)
        << ",\"distance\":" << eval.distance
        << ",\"task_duration\":" << eval.task_duration << "}";
     return os;

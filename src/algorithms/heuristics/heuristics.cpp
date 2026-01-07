@@ -48,7 +48,7 @@ inline void seed_route(const Input& input,
   // LLM: Stores the index of the job that best matches the initialization criteria (highest amount, furthest, nearest, or earliest deadline).
   Index best_job_rank = 0;
   // BRUNO : look for the best job. the unassigned jobs are not ordered,
-  // so we end up with the last best job according to criteria ==worst job?
+  // so we end up with the last best job according to criteria 
   // LLM: Iterate through all unassigned jobs to find the best candidate for the seed route based on the initialization criteria.
   for (const auto job_rank : unassigned) {
     const auto& current_job = input.jobs[job_rank];
@@ -182,7 +182,7 @@ template <class Route> struct UnassignedCosts {
     // LLM: Initialize costs for all unassigned jobs.
     for (const auto job_rank : unassigned) {
       const auto& unassigned_job = input.jobs[job_rank];
-      const auto unassigned_job_index = unassigned_job.index();
+      const auto unassigned_job_index = unassigned_job.location_index();
 
       // The purpose here is to generate insertion lower bounds so we
       // only account for service times (no setup) which are
@@ -204,7 +204,7 @@ template <class Route> struct UnassignedCosts {
       }
 
       for (const auto j : route.route) {
-        const auto job_index = input.jobs[j].index();
+        const auto job_index = input.jobs[j].location_index();
 
         const auto job_to_unassigned =
           vehicle.eval(job_index, unassigned_job_index).cost + service_cost;
@@ -239,7 +239,7 @@ template <class Route> struct UnassignedCosts {
     // LLM: Lower bound when delivery immediately follows pickup.
     const auto next_insertion = static_cast<double>(
       min_route_to_unassigned[p] + min_unassigned_to_route[p + 1] +
-      vehicle.eval(input.jobs[p].index(), input.jobs[p + 1].index()).cost -
+      vehicle.eval(input.jobs[p].location_index(), input.jobs[p + 1].location_index()).cost -
       max_edge_cost);
 
     return std::min(apart_insertion, next_insertion);
@@ -255,7 +255,7 @@ template <class Route> struct UnassignedCosts {
     // LLM: Update minimum costs for unassigned jobs after a new job has been inserted into the route.
     for (const auto j : unassigned) {
       const auto& unassigned_job = input.jobs[j];
-      const auto unassigned_job_index = unassigned_job.index();
+      const auto unassigned_job_index = unassigned_job.location_index();
 
       const auto added_service = unassigned_job.services[vehicle.type];
       const auto service_cost = vehicle.task_eval(added_service).cost;
@@ -281,12 +281,12 @@ inline Eval fill_route(const Input& input,
                        Route& route,
                        std::set<Index>& unassigned,
                        const std::vector<Cost>& regrets,
-                       double lambda) {
+                       double regret_coeff) {
  
   const auto v_rank = route.v_rank;
   const auto& vehicle = input.vehicles[v_rank];
   
-  DEBUG_LOG("v:"<< v_rank << "fill_route() ");
+  DEBUG_LOG("v:"<< v_rank << " fill_route() ");
   const bool init_route_is_empty = route.empty();
   Eval route_eval = utils::route_eval_for_vehicle(input, v_rank, route.route);
 
@@ -328,7 +328,7 @@ inline Eval fill_route(const Input& input,
           route.size() + 1 <= vehicle.max_tasks) {
 
         if (best_cost < unassigned_costs.get_insertion_lower_bound(job_rank) -
-                          lambda * static_cast<double>(regrets[job_rank])) {
+                          regret_coeff * static_cast<double>(regrets[job_rank])) {
           // Bypass going through whole route if we're sure insertion
           // cost is not good enough.
           continue;
@@ -341,7 +341,7 @@ inline Eval fill_route(const Input& input,
           // LLM: Calculates the cost of inserting the job at rank r. It subtracts the weighted regret to prioritize jobs that are expensive to assign to other vehicles.
           const double current_cost =
             static_cast<double>(current_eval.cost) -
-            (lambda * static_cast<double>(regrets[job_rank]));
+            (regret_coeff * static_cast<double>(regrets[job_rank]));
 
           if (current_cost < best_cost &&
               (vehicle.ok_for_range_bounds(route_eval + current_eval)) &&
@@ -361,10 +361,11 @@ inline Eval fill_route(const Input& input,
       // LLM: Try inserting a pickup and delivery pair.
       if (current_job.type == JOB_TYPE::PICKUP &&
           route.size() + 2 <= vehicle.max_tasks) {
-
+        // BRUNO: i am not sure what is this test about. the best cost should never be 
+        // cheaper than the lower bound.. so what its the point?
         if (best_cost <
             unassigned_costs.get_pd_insertion_lower_bound(input, job_rank) -
-              lambda * static_cast<double>(regrets[job_rank])) {
+              regret_coeff * static_cast<double>(regrets[job_rank])) {
           // Bypass going through whole route if we're sure insertion
           // cost is not good enough.
           continue;
@@ -387,6 +388,7 @@ inline Eval fill_route(const Input& input,
                                                             job_rank + 1,
                                                             d_rank);
         }
+        // Bruno: now precompute insertion costs for the pickup part of the job at all valid positions.
         for (Index pickup_r = 0; pickup_r <= route.size(); ++pickup_r) {
           // evaluate adding job_rank in given route at given index pickup_r
           const auto p_add = utils::addition_eval(input,
@@ -445,7 +447,7 @@ inline Eval fill_route(const Input& input,
             // LLM: Calculates the cost of inserting the pickup and delivery pair. It subtracts the weighted regret to prioritize difficult jobs.
             const double current_cost =
               current_eval.cost -
-              lambda * static_cast<double>(regrets[job_rank]);
+              regret_coeff * static_cast<double>(regrets[job_rank]);
 
             if (current_cost < best_cost) {
               modified_with_pd.push_back(job_rank + 1);
@@ -499,7 +501,7 @@ inline Eval fill_route(const Input& input,
         keep_going = true;
 
         unassigned_costs.update_max_edge(input, route);
-        unassigned_costs.update_min_costs(input, unassigned, best_job.index());
+        unassigned_costs.update_min_costs(input, unassigned, best_job.location_index());
       }
       // LLM: Perform the actual insertion of the best pickup and delivery pair found.
       if (best_job.type == JOB_TYPE::PICKUP) {
@@ -523,11 +525,11 @@ inline Eval fill_route(const Input& input,
         keep_going = true;
 
         unassigned_costs.update_max_edge(input, route);
-        unassigned_costs.update_min_costs(input, unassigned, best_job.index());
+        unassigned_costs.update_min_costs(input, unassigned, best_job.location_index());
         unassigned_costs
           .update_min_costs(input,
                             unassigned,
-                            input.jobs[best_job_rank + 1].index());
+                            input.jobs[best_job_rank + 1].location_index());
       }
 
       route_eval += best_eval;
@@ -548,18 +550,19 @@ Eval basic(const Input& input,
            std::set<Index> unassigned,
            std::vector<Index> vehicles_ranks,
            INIT init,
-           double lambda,
+           double regret_coeff,
            SORT sort) {
   DEBUG_LOG("basic()"<<
             " nb_vehicles:"<<vehicles_ranks.size()<<
             ", nb_unassigned:"<<unassigned.size()<<
             ", init:"<<static_cast<int>(init)<<
-            ", lambda:"<<lambda<<
+            ", lambda:"<<regret_coeff<<
             ", sort:"<<static_cast<int>(sort));
   // Ordering is based on vehicles description only so do not account
   // for initial routes if any.
   const auto nb_vehicles = vehicles_ranks.size();
-
+   // BRUNO: 1) init
+   // BRUNO: 1.1) sort vehicles 
   switch (sort) {
   case SORT::AVAILABILITY: {
     // Sort vehicles by decreasing "availability".
@@ -586,6 +589,7 @@ Eval basic(const Input& input,
   // BRUNO:evals[j][v] evaluates fetching job j (and optionally associated delivery) in an empty route from vehicle at rank v 
   const auto& evals = input.jobs_vehicles_evals();
 
+  // BRUNO: 1.2) compute regrets
   // LLM: Stores the regret value for each job and vehicle. 
   // regrets[v][j] is the cost of assigning job j to the best alternative vehicle after vehicle v.
   // regrets[v][j] holds the min cost for reaching job j in an empty
@@ -596,17 +600,27 @@ Eval basic(const Input& input,
 
   std::vector<std::vector<Cost>> regrets(nb_vehicles,
                                          std::vector<Cost>(input.jobs.size()));
-
+   
   // Use own cost for last vehicle regret values.
   // BRUNO: regret is used as a heuristic to prioritize assigning jobs that would be "expensive" or difficult to assign to other vehicles later on.
+  // BRUNO: for the last vehicle, there are no alternative vehicles, so regret is simply the cost of assigning the job to this vehicle.
   for (const auto j : unassigned) {
     regrets.back()[j] = evals[j][vehicles_ranks.back()].cost;
   }
 
+  int last_v=nb_vehicles-1;    
+  DEBUG_LOG("regrets["<<last_v<<"] is for vehicle_rank= "<<vehicles_ranks[last_v]);
+  for (const auto j : unassigned) {
+      DEBUG_LOG("regrets["<<last_v<<"]["<<j<<"] = " << regrets[last_v][j]);
+  }
+
+  // BRUNO: for the other vehicles, compute regrets as minimum between using next vehicle regrets and own cost
   for (Index rev_v = 0; rev_v < nb_vehicles - 1; ++rev_v) {
+    
+
     // Going trough vehicles backward from second to last.
     const auto v = nb_vehicles - 2 - rev_v;
-
+    DEBUG_LOG("regrets["<<v<<"] is for vehicle_rank= "<<vehicles_ranks[v]);
     
     bool all_compatible_jobs_later_undoable = true; // purpose is to determine if all jobs that are compatible with the current vehicle v become "impossible" (infinite cost) for all subsequent vehicles.
     // BRUNO: compute regrets AND check all_compatible_jobs_later_undoable    
@@ -629,11 +643,16 @@ Eval basic(const Input& input,
       for (const auto j : unassigned) {
         regrets[v][j] = evals[j][vehicles_ranks[v]].cost;
       }
+      DEBUG_LOG("regrets["<<v<<"] all_compatible_jobs_later_undoable, using own costs");
+    } else {
+      for (const auto j : unassigned) {
+        DEBUG_LOG("regrets["<<v<<"]["<<j<<"] = " << regrets[v][j]);
+      }
     }
   }
 
   Eval sol_eval;
-  // BRUNO: build solution by iterating over vehicles, one route per vehicle
+  // BRUNO: 2) build solution by iterating over vehicles, one route per vehicle
   // LLM: Construct routes for each vehicle in the sorted order.
   for (Index v = 0; v < nb_vehicles && !unassigned.empty(); ++v) {
     auto v_rank = vehicles_ranks[v];
@@ -647,7 +666,7 @@ Eval basic(const Input& input,
     }
 
     const auto current_eval =
-      fill_route(input, current_r, unassigned, regrets[v], lambda);
+      fill_route(input, current_r, unassigned, regrets[v], regret_coeff);
     sol_eval += current_eval;
   }
 
@@ -853,9 +872,9 @@ void set_route(const Input& input,
 
     // Update current travel time.
     if (previous_index.has_value()) {
-      eval_sum += vehicle.eval(previous_index.value(), job.index());
+      eval_sum += vehicle.eval(previous_index.value(), job.location_index());
     }
-    previous_index = job.index();
+    previous_index = job.location_index();
 
     // Handle load.
     assert(step.job_type.has_value());

@@ -106,7 +106,7 @@ struct Job {
       const TypeToUserDurationMap& setup_per_type = TypeToUserDurationMap(),
       const TypeToUserDurationMap& service_per_type = TypeToUserDurationMap());
 
-  Index index() const {
+  Index location_index() const {
     return location.index();
   }
 

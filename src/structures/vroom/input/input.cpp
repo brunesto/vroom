@@ -172,8 +172,8 @@ void Input::check_job(Job& job) {
     }
   }
 
-  _matrices_used_index.insert(job.index());
-  _max_matrices_used_index = std::max(_max_matrices_used_index, job.index());
+  _matrices_used_index.insert(job.location_index());
+  _max_matrices_used_index = std::max(_max_matrices_used_index, job.location_index());
   _all_locations_have_coords =
     _all_locations_have_coords && job.location.has_coordinates();
 }
@@ -505,10 +505,10 @@ UserCost Input::check_cost_bound(const Matrix<UserCost>& matrix) const {
   for (const auto& j : jobs) {
     jobs_departure_bound =
       utils::add_without_overflow(jobs_departure_bound,
-                                  max_cost_per_line[j.index()]);
+                                  max_cost_per_line[j.location_index()]);
     jobs_arrival_bound =
       utils::add_without_overflow(jobs_arrival_bound,
-                                  max_cost_per_column[j.index()]);
+                                  max_cost_per_column[j.location_index()]);
   }
 
   const UserCost jobs_bound =
@@ -810,13 +810,13 @@ void Input::set_jobs_vehicles_evals() {
 
   for (std::size_t j = 0; j < jobs.size(); ++j) {
     const auto& job = jobs[j];
-    const Index j_index = job.index();
+    const Index j_index = job.location_index();
     const bool is_pickup = (job.type == JOB_TYPE::PICKUP);
 
     Index last_job_index = j_index;
     if (is_pickup) {
       assert((j + 1 < jobs.size()) && (jobs[j + 1].type == JOB_TYPE::DELIVERY));
-      last_job_index = jobs[j + 1].index();
+      last_job_index = jobs[j + 1].location_index();
     }
 
     for (std::size_t v = 0; v < vehicles.size(); ++v) {
@@ -848,7 +848,7 @@ void Input::set_jobs_vehicles_evals() {
       if (is_pickup) {
         const auto& d_job = jobs[j + 1];
         added_task_duration += d_job.services[vehicle.type];
-        if (j_index != d_job.index()) {
+        if (j_index != d_job.location_index()) {
           added_task_duration += d_job.setups[vehicle.type];
         }
       }

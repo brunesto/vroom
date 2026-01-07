@@ -134,8 +134,10 @@ inline Eval addition_eval(const Input& input,
                           Index rank) {
   assert(rank <= route.size());
 
+
+
   const auto& job = input.jobs[job_rank];
-  const auto job_index = job.index();
+  const auto job_index = job.location_index();
   Eval previous_eval;
   Eval next_eval;
   Eval old_edge_eval;
@@ -146,6 +148,7 @@ inline Eval addition_eval(const Input& input,
 
   if (rank == route.size()) {
     if (route.empty()) {
+      // BRUNO: new route with only one job
       if (v.has_start()) {
         previous_index = v.start.value().index();
         previous_eval = v.eval(previous_index.value(), job_index);
@@ -155,7 +158,7 @@ inline Eval addition_eval(const Input& input,
       }
     } else {
       // Adding job past the end after a real job.
-      previous_index = input.jobs[route[rank - 1]].index();
+      previous_index = input.jobs[route[rank - 1]].location_index();
       previous_eval = v.eval(previous_index.value(), job_index);
 
       if (v.has_end()) {
@@ -166,7 +169,8 @@ inline Eval addition_eval(const Input& input,
     }
   } else {
     // Adding before one of the jobs.
-    auto next_index = input.jobs[route[rank]].index();
+    auto next_index = input.jobs[route[rank]].location_index();
+    // BRUNO: cost of sd job_index,next_index (both location indexes)
     next_eval = v.eval(job_index, next_index);
 
     if (rank == 0) {
@@ -176,7 +180,7 @@ inline Eval addition_eval(const Input& input,
         old_edge_eval = v.eval(previous_index.value(), next_index);
       }
     } else {
-      previous_index = input.jobs[route[rank - 1]].index();
+      previous_index = input.jobs[route[rank - 1]].location_index();
       previous_eval = v.eval(previous_index.value(), job_index);
       old_edge_eval = v.eval(previous_index.value(), next_index);
     }
@@ -220,9 +224,9 @@ inline Eval addition_eval(const Input& input,
 
   if (delivery_rank == pickup_rank + 1) {
     // Delivery is inserted just after pickup.
-    const auto p_index = input.jobs[job_rank].index();
+    const auto p_index = input.jobs[job_rank].location_index();
     const auto& d_job = input.jobs[job_rank + 1];
-    const auto d_index = d_job.index();
+    const auto d_index = d_job.location_index();
     eval += v.eval(p_index, d_index);
 
     Eval after_delivery;
@@ -242,7 +246,7 @@ inline Eval addition_eval(const Input& input,
     } else {
       // There is a job after insertion.
       const auto& next_job = input.jobs[route[pickup_rank]];
-      const auto next_index = next_job.index();
+      const auto next_index = next_job.location_index();
       after_delivery = v.eval(d_index, next_index);
       remove_after_pickup = v.eval(p_index, next_index);
 
@@ -278,7 +282,7 @@ inline auto get_indices(const Input& input,
 
   auto& before_first = indices[0];
   if (first_rank > 0) {
-    before_first = input.jobs[r[first_rank - 1]].index();
+    before_first = input.jobs[r[first_rank - 1]].location_index();
   } else {
     if (v.has_start()) {
       before_first = v.start.value().index();
@@ -287,7 +291,7 @@ inline auto get_indices(const Input& input,
 
   auto& first_index = indices[1];
   if (first_rank < r.size()) {
-    first_index = input.jobs[r[first_rank]].index();
+    first_index = input.jobs[r[first_rank]].location_index();
   } else {
     if (v.has_end()) {
       first_index = v.end.value().index();
@@ -296,7 +300,7 @@ inline auto get_indices(const Input& input,
 
   auto& last_index = indices[2];
   if (last_rank < r.size()) {
-    last_index = input.jobs[r[last_rank]].index();
+    last_index = input.jobs[r[last_rank]].location_index();
   } else {
     if (v.has_end()) {
       last_index = v.end.value().index();
@@ -415,22 +419,22 @@ addition_eval_delta(const Input& input,
   if (before_first.has_value()) {
     // Cost of new edge to inserted range.
     straight_delta -=
-      v1.eval(before_first.value(), input.jobs[r2[insertion_start]].index());
+      v1.eval(before_first.value(), input.jobs[r2[insertion_start]].location_index());
     reversed_delta -=
-      v1.eval(before_first.value(), input.jobs[r2[insertion_end - 1]].index());
+      v1.eval(before_first.value(), input.jobs[r2[insertion_end - 1]].location_index());
   }
 
   if (last_index.has_value()) {
     // Cost of new edge after inserted range.
     straight_delta -=
-      v1.eval(input.jobs[r2[insertion_end - 1]].index(), last_index.value());
+      v1.eval(input.jobs[r2[insertion_end - 1]].location_index(), last_index.value());
     reversed_delta -=
-      v1.eval(input.jobs[r2[insertion_start]].index(), last_index.value());
+      v1.eval(input.jobs[r2[insertion_start]].location_index(), last_index.value());
   }
 
   // Gain of removed edge after replaced range, if any.
   if (last_index.has_value() && last_rank > first_rank) {
-    const Index before_last = input.jobs[r1[last_rank - 1]].index();
+    const Index before_last = input.jobs[r1[last_rank - 1]].location_index();
     cost_delta += v1.eval(before_last, last_index.value());
   }
 
@@ -445,9 +449,9 @@ addition_eval_delta(const Input& input,
 
   // We do insert stuff.
   const auto& first_inserted = input.jobs[r2[insertion_start]];
-  const auto first_inserted_index = first_inserted.index();
+  const auto first_inserted_index = first_inserted.location_index();
   const auto& last_inserted = input.jobs[r2[insertion_end - 1]];
-  const auto last_inserted_index = last_inserted.index();
+  const auto last_inserted_index = last_inserted.location_index();
 
   if (!before_first.has_value() ||
       before_first.value() != first_inserted_index) {
@@ -461,9 +465,9 @@ addition_eval_delta(const Input& input,
   if (last_rank < r1.size()) {
     // There are remaining jobs after removed range.
     const auto& next_job = input.jobs[r1[last_rank]];
-    const auto next_index = next_job.index();
+    const auto next_index = next_job.location_index();
     const std::optional<Index> previous_index =
-      (last_rank > first_rank) ? input.jobs[r1[last_rank - 1]].index()
+      (last_rank > first_rank) ? input.jobs[r1[last_rank - 1]].location_index()
                                : before_first;
 
     if (!previous_index.has_value()) {
@@ -528,7 +532,7 @@ inline Eval addition_eval_delta(const Input& input,
   const auto v_rank = raw_route.v_rank;
   const auto& v = input.vehicles[v_rank];
   const auto& job = input.jobs[job_rank];
-  const auto job_index = job.index();
+  const auto job_index = job.location_index();
 
   Eval cost_delta =
     get_range_removal_gain(sol_state, v_rank, first_rank, last_rank);
@@ -554,7 +558,7 @@ inline Eval addition_eval_delta(const Input& input,
 
   // Gain of removed edge after replaced range, if any.
   if (last_index.has_value()) {
-    const Index before_last = input.jobs[r[last_rank - 1]].index();
+    const Index before_last = input.jobs[r[last_rank - 1]].location_index();
     cost_delta += v.eval(before_last, last_index.value());
   }
 
@@ -564,8 +568,8 @@ inline Eval addition_eval_delta(const Input& input,
   if (last_rank < r.size()) {
     // There are remaining jobs after replaced range.
     const auto& next_job = input.jobs[r[last_rank]];
-    const auto next_index = next_job.index();
-    const auto previous_index = input.jobs[r[last_rank - 1]].index();
+    const auto next_index = next_job.location_index();
+    const auto previous_index = input.jobs[r[last_rank - 1]].location_index();
 
     if (next_index == job_index && previous_index != next_index) {
       added_task_duration -= next_job.setups[v.type];
@@ -636,15 +640,15 @@ inline Eval removal_gain(const Input& input,
 
   // Gain of removed edge after replaced range, if any.
   if (last_index.has_value()) {
-    const Index before_last = input.jobs[r[last_rank - 1]].index();
+    const Index before_last = input.jobs[r[last_rank - 1]].location_index();
     cost_delta += v.eval(before_last, last_index.value());
   }
 
   if (last_rank < r.size()) {
     // There are remaining jobs after removed range.
     const auto& next_job = input.jobs[r[last_rank]];
-    const auto next_index = next_job.index();
-    const auto previous_index = input.jobs[r[last_rank - 1]].index();
+    const auto next_index = next_job.location_index();
+    const auto previous_index = input.jobs[r[last_rank - 1]].location_index();
 
     const bool before_same_as_next =
       before_first.has_value() && before_first.value() == next_index;
@@ -676,19 +680,19 @@ inline Eval max_edge_eval(const Input& input,
   if (!route.empty()) {
     if (v.has_start()) {
       const auto start_to_first =
-        v.eval(v.start.value().index(), input.jobs[route.front()].index());
+        v.eval(v.start.value().index(), input.jobs[route.front()].location_index());
       max_eval = std::max(max_eval, start_to_first);
     }
 
     for (std::size_t i = 0; i < route.size() - 1; ++i) {
       const auto job_to_next =
-        v.eval(input.jobs[route[i]].index(), input.jobs[route[i + 1]].index());
+        v.eval(input.jobs[route[i]].location_index(), input.jobs[route[i + 1]].location_index());
       max_eval = std::max(max_eval, job_to_next);
     }
 
     if (v.has_end()) {
       const auto last_to_end =
-        v.eval(input.jobs[route.back()].index(), v.end.value().index());
+        v.eval(input.jobs[route.back()].location_index(), v.end.value().index());
       max_eval = std::max(max_eval, last_to_end);
     }
   }
@@ -716,7 +720,7 @@ inline Eval in_place_delta_eval(const Input& input,
                                 Index rank) {
   assert(!r.empty());
   const auto& job = input.jobs[job_rank];
-  const auto job_index = job.index();
+  const auto job_index = job.location_index();
 
   Eval new_previous_eval;
   Eval new_next_eval;
@@ -729,7 +733,7 @@ inline Eval in_place_delta_eval(const Input& input,
       new_previous_eval = v.eval(p_index.value(), job_index);
     }
   } else {
-    p_index = input.jobs[r[rank - 1]].index();
+    p_index = input.jobs[r[rank - 1]].location_index();
     new_previous_eval = v.eval(p_index.value(), job_index);
   }
 
@@ -739,7 +743,7 @@ inline Eval in_place_delta_eval(const Input& input,
       new_next_eval = v.eval(job_index, n_index.value());
     }
   } else {
-    n_index = input.jobs[r[rank + 1]].index();
+    n_index = input.jobs[r[rank + 1]].location_index();
     new_next_eval = v.eval(job_index, n_index.value());
   }
 
@@ -753,7 +757,7 @@ inline Eval in_place_delta_eval(const Input& input,
   if (rank + 1u < r.size()) {
     // There is a next job after inserted job.
     const auto& next_job = input.jobs[r[rank + 1]];
-    const auto next_index = next_job.index();
+    const auto next_index = next_job.location_index();
 
     const bool before_same_as_next =
       p_index.has_value() && p_index.value() == next_index;

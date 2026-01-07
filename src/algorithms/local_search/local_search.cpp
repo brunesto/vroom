@@ -2140,7 +2140,7 @@ Eval LocalSearch<Route,
   assert(v != v_target);
 
   Eval eval = NO_EVAL;
-  const auto job_index = _input.jobs[_sol[v].route[r]].index();
+  const auto job_index = _input.jobs[_sol[v].route[r]].location_index();
 
   const auto& vehicle = _input.vehicles[v_target];
   if (vehicle.has_start()) {
@@ -2157,14 +2157,14 @@ Eval LocalSearch<Route,
     const auto cheapest_from_rank =
       _sol_state.cheapest_job_rank_in_routes_from[v][v_target][r];
     const auto cheapest_from_index =
-      _input.jobs[_sol[v_target].route[cheapest_from_rank]].index();
+      _input.jobs[_sol[v_target].route[cheapest_from_rank]].location_index();
     const auto eval_from = vehicle.eval(cheapest_from_index, job_index);
     eval = std::min(eval, eval_from);
 
     const auto cheapest_to_rank =
       _sol_state.cheapest_job_rank_in_routes_to[v][v_target][r];
     const auto cheapest_to_index =
-      _input.jobs[_sol[v_target].route[cheapest_to_rank]].index();
+      _input.jobs[_sol[v_target].route[cheapest_to_rank]].location_index();
     const auto eval_to = vehicle.eval(job_index, cheapest_to_index);
     eval = std::min(eval, eval_to);
   }

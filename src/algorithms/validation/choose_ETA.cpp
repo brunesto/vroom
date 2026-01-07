@@ -134,7 +134,7 @@ Route choose_ETA(const Input& input,
       assert(previous_index.has_value() || (evals.empty() && !v.has_start()));
 
       const auto current_eval = (previous_index.has_value())
-                                  ? v.eval(previous_index.value(), job.index())
+                                  ? v.eval(previous_index.value(), job.location_index())
                                   : Eval();
       evals.push_back(current_eval);
 
@@ -144,7 +144,7 @@ Route choose_ETA(const Input& input,
       relative_ETA.push_back(relative_arrival);
 
       const bool has_setup_time =
-        !previous_index.has_value() || (previous_index.value() != job.index());
+        !previous_index.has_value() || (previous_index.value() != job.location_index());
       const auto current_action = has_setup_time
                                     ? job.setups[v.type] + job.services[v.type]
                                     : job.services[v.type];
@@ -152,7 +152,7 @@ Route choose_ETA(const Input& input,
       action_sum += current_action;
       relative_arrival += current_action;
 
-      previous_index = job.index();
+      previous_index = job.location_index();
       if (!first_location.has_value()) {
         first_location = job.location;
       }
@@ -1197,8 +1197,8 @@ Route choose_ETA(const Input& input,
       const auto& job = input.jobs[job_rank];
 
       const auto current_setup =
-        (previous_location != job.index()) ? job.setups[v.type] : 0;
-      previous_location = job.index();
+        (previous_location != job.location_index()) ? job.setups[v.type] : 0;
+      previous_location = job.location_index();
       const auto current_service = job.services[v.type];
 
       setup += current_setup;

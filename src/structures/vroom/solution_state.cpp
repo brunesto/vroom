@@ -108,9 +108,9 @@ void SolutionState::update_costs(const RawRoute& raw_route) {
 
   // Handle evals for first job.
   const auto& first_job = _input.jobs[route[0]];
-  const auto first_index = first_job.index();
+  const auto first_index = first_job.location_index();
   const auto& last_job = _input.jobs[route.back()];
-  const auto last_index = last_job.index();
+  const auto last_index = last_job.location_index();
 
   for (Index v_rank = 0; v_rank < _nb_vehicles; ++v_rank) {
     fwd_evals[v][v_rank][0] = Eval();
@@ -137,8 +137,8 @@ void SolutionState::update_costs(const RawRoute& raw_route) {
     const auto& previous_job = _input.jobs[route[i - 1]];
     const auto& current_job = _input.jobs[route[i]];
 
-    const auto previous_index = previous_job.index();
-    const auto current_index = current_job.index();
+    const auto previous_index = previous_job.location_index();
+    const auto current_index = current_job.location_index();
     const bool apply_setup = (previous_index != current_index);
 
     for (Index v_rank = 0; v_rank < _nb_vehicles; ++v_rank) {
@@ -166,7 +166,7 @@ void SolutionState::update_costs(const RawRoute& raw_route) {
   for (std::size_t i = route.size() - 1; i > 0; --i) {
     const auto& previous_job = _input.jobs[route[i]];
     const auto& current_job = _input.jobs[route[i - 1]];
-    const bool apply_setup = (previous_job.index() != current_job.index());
+    const bool apply_setup = (previous_job.location_index() != current_job.location_index());
 
     for (Index v_rank = 0; v_rank < _nb_vehicles; ++v_rank) {
       bwd_setup_evals[v][v_rank][i - 1] = bwd_setup_evals[v][v_rank][i];
@@ -234,7 +234,7 @@ void SolutionState::set_node_gains(const RawRoute& raw_route) {
 
   // Handling first job is special due to potential open tours.
   Index p_index;
-  Index c_index = _input.jobs[route[0]].index();
+  Index c_index = _input.jobs[route[0]].location_index();
   Index n_index;
 
   Eval previous_eval;
@@ -256,7 +256,7 @@ void SolutionState::set_node_gains(const RawRoute& raw_route) {
     }
     // Update next_eval with next job or end.
     if (route.size() > 1) {
-      n_index = _input.jobs[route[1]].index();
+      n_index = _input.jobs[route[1]].location_index();
       next_eval = vehicle.eval(c_index, n_index);
       new_edge_eval = vehicle.eval(p_index, n_index);
 
@@ -276,7 +276,7 @@ void SolutionState::set_node_gains(const RawRoute& raw_route) {
     // There is a next eval either to next job or to end of route, but
     // no new edge.
     if (route.size() > 1) {
-      n_index = _input.jobs[route[1]].index();
+      n_index = _input.jobs[route[1]].location_index();
 
       if (n_index == c_index) {
         task_duration_gain -= _input.jobs[route[1]].setups[vehicle.type];
@@ -301,9 +301,9 @@ void SolutionState::set_node_gains(const RawRoute& raw_route) {
   // Handle jobs that always have a previous and next job.
   for (std::size_t i = 1; i < route.size() - 1; ++i) {
     // Compute potential gain to relocate current job.
-    p_index = _input.jobs[route[i - 1]].index();
-    c_index = _input.jobs[route[i]].index();
-    n_index = _input.jobs[route[i + 1]].index();
+    p_index = _input.jobs[route[i - 1]].location_index();
+    c_index = _input.jobs[route[i]].location_index();
+    n_index = _input.jobs[route[i + 1]].location_index();
 
     task_duration_gain = _input.jobs[route[i]].services[vehicle.type];
 
@@ -329,10 +329,10 @@ void SolutionState::set_node_gains(const RawRoute& raw_route) {
   // Handling last job after a previous job is special due to
   // potential open tours.
   auto last_rank = route.size() - 1;
-  c_index = _input.jobs[route[last_rank]].index();
+  c_index = _input.jobs[route[last_rank]].location_index();
 
   assert(route.size() > 1);
-  p_index = _input.jobs[route[last_rank - 1]].index();
+  p_index = _input.jobs[route[last_rank - 1]].location_index();
   previous_eval = vehicle.eval(p_index, c_index);
 
   task_duration_gain = _input.jobs[route[last_rank]].services[vehicle.type];
@@ -372,8 +372,8 @@ void SolutionState::set_edge_gains(const RawRoute& raw_route) {
 
   // Handling first edge is special due to potential open tours.
   Index p_index;
-  Index c_index = _input.jobs[route[0]].index();
-  Index after_c_index = _input.jobs[route[1]].index();
+  Index c_index = _input.jobs[route[0]].location_index();
+  Index after_c_index = _input.jobs[route[1]].location_index();
   Index n_index;
 
   Eval previous_eval;
@@ -388,7 +388,7 @@ void SolutionState::set_edge_gains(const RawRoute& raw_route) {
 
     // Update next_eval with next job or end.
     if (route.size() > 2) {
-      n_index = _input.jobs[route[2]].index();
+      n_index = _input.jobs[route[2]].location_index();
       next_eval = vehicle.eval(after_c_index, n_index);
       new_edge_eval = vehicle.eval(p_index, n_index);
     } else {
@@ -401,7 +401,7 @@ void SolutionState::set_edge_gains(const RawRoute& raw_route) {
     // There is a next eval either to next job or to end of route, but
     // no new edge.
     if (route.size() > 2) {
-      n_index = _input.jobs[route[2]].index();
+      n_index = _input.jobs[route[2]].location_index();
     } else {
       assert(vehicle.has_end());
       n_index = vehicle.end.value().index();
@@ -422,10 +422,10 @@ void SolutionState::set_edge_gains(const RawRoute& raw_route) {
   for (std::size_t i = 1; i < nb_edges - 1; ++i) {
     // Compute potential gain to relocate edge from current to next
     // job.
-    p_index = _input.jobs[route[i - 1]].index();
-    c_index = _input.jobs[route[i]].index();
-    after_c_index = _input.jobs[route[i + 1]].index();
-    n_index = _input.jobs[route[i + 2]].index();
+    p_index = _input.jobs[route[i - 1]].location_index();
+    c_index = _input.jobs[route[i]].location_index();
+    after_c_index = _input.jobs[route[i + 1]].location_index();
+    n_index = _input.jobs[route[i + 2]].location_index();
 
     edge_evals_around_edge[v][i] =
       vehicle.eval(p_index, c_index) + vehicle.eval(after_c_index, n_index);
@@ -436,8 +436,8 @@ void SolutionState::set_edge_gains(const RawRoute& raw_route) {
 
   // Handling last edge is special due to potential open tours.
   auto last_edge_rank = nb_edges - 1;
-  c_index = _input.jobs[route[last_edge_rank]].index();
-  after_c_index = _input.jobs[route[last_edge_rank + 1]].index();
+  c_index = _input.jobs[route[last_edge_rank]].location_index();
+  after_c_index = _input.jobs[route[last_edge_rank + 1]].location_index();
 
   previous_eval = Eval();
   next_eval = Eval();
@@ -449,7 +449,7 @@ void SolutionState::set_edge_gains(const RawRoute& raw_route) {
     next_eval = vehicle.eval(after_c_index, n_index);
 
     if (route.size() > 2) {
-      p_index = _input.jobs[route[last_edge_rank - 1]].index();
+      p_index = _input.jobs[route[last_edge_rank - 1]].location_index();
       previous_eval = vehicle.eval(p_index, c_index);
       new_edge_eval = vehicle.eval(p_index, n_index);
     }
@@ -457,7 +457,7 @@ void SolutionState::set_edge_gains(const RawRoute& raw_route) {
     // There is a previous eval either from previous job or from start
     // of route, but no new edge.
     if (route.size() > 2) {
-      p_index = _input.jobs[route[last_edge_rank - 1]].index();
+      p_index = _input.jobs[route[last_edge_rank - 1]].location_index();
     } else {
       assert(vehicle.has_start());
       p_index = vehicle.start.value().index();
@@ -580,7 +580,7 @@ void SolutionState::set_insertion_ranks(const TWRoute& tw_r) {
 
     const auto job_available = job.tws.front().start;
     const auto job_deadline = job.tws.back().end;
-    const auto job_index = job.index();
+    const auto job_index = job.location_index();
 
     // Handle insertion_ranks_*
     for (std::size_t t = 0; t < route.size(); ++t) {
@@ -589,7 +589,7 @@ void SolutionState::set_insertion_ranks(const TWRoute& tw_r) {
       }
       if (job_deadline <
           tw_r.earliest[t] + tw_r.action_time[t] +
-            vehicle.duration(_input.jobs[route[t]].index(), job_index)) {
+            vehicle.duration(_input.jobs[route[t]].location_index(), job_index)) {
         // Too late to perform job any time after task at t based on
         // its earliest date in route for v.
         insertion_ranks_end[v][j] = t + 1;
@@ -603,7 +603,7 @@ void SolutionState::set_insertion_ranks(const TWRoute& tw_r) {
       }
       if (tw_r.latest[rev_t] <
           job_available + job.services[v_type] +
-            vehicle.duration(job_index, _input.jobs[route[rev_t]].index())) {
+            vehicle.duration(job_index, _input.jobs[route[rev_t]].location_index())) {
         // Job is available too late to be performed any time before
         // task at rev_t based on its latest date in route for v.
         insertion_ranks_begin[v][j] = rev_t + 1;
@@ -618,7 +618,7 @@ void SolutionState::set_insertion_ranks(const TWRoute& tw_r) {
       }
       const auto& task = _input.jobs[route[t]];
       if (job_deadline < task.tws.front().start + task.services[v_type] +
-                           vehicle.duration(task.index(), job_index)) {
+                           vehicle.duration(task.location_index(), job_index)) {
         // Too late to perform job any time after task at t solely
         // based on its TW.
         weak_insertion_ranks_end[v][j] = t + 1;
@@ -633,7 +633,7 @@ void SolutionState::set_insertion_ranks(const TWRoute& tw_r) {
       }
       const auto& task = _input.jobs[route[rev_t]];
       if (task.tws.back().end < job_available + job.services[v_type] +
-                                  vehicle.duration(job_index, task.index())) {
+                                  vehicle.duration(job_index, task.location_index())) {
         // Job is available too late to be performed any time before
         // task at rev_t solely based on its TW.
         weak_insertion_ranks_begin[v][j] = rev_t + 1;
@@ -653,7 +653,7 @@ void SolutionState::update_cheapest_job_rank_in_routes(
   cheapest_job_rank_in_routes_to[v1][v2].assign(route_1.size(), 0);
 
   for (std::size_t r1 = 0; r1 < route_1.size(); ++r1) {
-    const Index index_r1 = _input.jobs[route_1[r1]].index();
+    const Index index_r1 = _input.jobs[route_1[r1]].location_index();
 
     auto min_from = std::numeric_limits<Cost>::max();
     auto min_to = std::numeric_limits<Cost>::max();
@@ -662,7 +662,7 @@ void SolutionState::update_cheapest_job_rank_in_routes(
 
     const auto& vehicle = _input.vehicles[v2];
     for (std::size_t r2 = 0; r2 < route_2.size(); ++r2) {
-      const Index index_r2 = _input.jobs[route_2[r2]].index();
+      const Index index_r2 = _input.jobs[route_2[r2]].location_index();
       if (const auto cost_from = vehicle.cost(index_r1, index_r2);
           cost_from < min_from) {
         min_from = cost_from;

@@ -53,7 +53,7 @@ TSP::TSP(const Input& input, std::vector<Index>&& job_ranks, Index vehicle_rank)
 
   std::ranges::transform(_job_ranks,
                          std::back_inserter(matrix_ranks),
-                         [&](const auto& r) { return _input.jobs[r].index(); });
+                         [&](const auto& r) { return _input.jobs[r].location_index(); });
 
   if (_has_start) {
     // Add start and remember rank in _matrix.
