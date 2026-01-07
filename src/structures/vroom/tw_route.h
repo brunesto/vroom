@@ -28,15 +28,15 @@ namespace vroom {
 // TWRoute::next_info.
 struct PreviousInfo {
   // Earliest end date for previous step.
-  Duration earliest;
+  Duration earliest_end;
   // Travel time from previous step.
-  Duration travel;
+  Duration travel_time_from_prev;
   // Location for previous step. A value of
   // std::numeric_limits<Index>::max() means no previous step.
   Index location_index{std::numeric_limits<Index>::max()};
 
   PreviousInfo(Duration earliest, Duration travel)
-    : earliest(earliest), travel(travel) {
+    : earliest_end(earliest), travel_time_from_prev(travel) {
   }
 };
 
@@ -46,11 +46,11 @@ struct PreviousInfo {
  */
 struct NextInfo {
   // Latest start date for next step.
-  Duration latest;
+  Duration latest_start;
   // Travel time to that step.
-  Duration travel;
+  Duration travel_time_to;
 
-  NextInfo(Duration latest, Duration travel) : latest(latest), travel(travel) {
+  NextInfo(Duration latest, Duration travel) : latest_start(latest), travel_time_to(travel) {
   }
 };
 

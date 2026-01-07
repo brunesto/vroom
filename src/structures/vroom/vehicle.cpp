@@ -34,7 +34,7 @@ Vehicle::Vehicle(Id id,
   : id(id),
     start(start),
     end(end),
-    profile(std::move(profile)),
+    routing_profile(std::move(profile)),
     capacity(capacity),
     skills(std::move(skills)),
     tw(tw),
@@ -131,7 +131,7 @@ bool Vehicle::has_same_locations(const Vehicle& other) const {
 }
 
 bool Vehicle::has_same_profile(const Vehicle& other) const {
-  return (this->profile == other.profile) &&
+  return (this->routing_profile == other.routing_profile) &&
          this->cost_wrapper.has_same_variable_costs(other.cost_wrapper);
 }
 

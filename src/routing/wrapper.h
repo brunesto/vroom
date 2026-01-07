@@ -127,7 +127,7 @@ public:
     vehicles_threads.reserve(vehicles.size());
 
     for (Index v_rank = 0; v_rank < vehicles.size(); ++v_rank) {
-      if (vehicles[v_rank].profile == this->profile) {
+      if (vehicles[v_rank].routing_profile == this->profile) {
         vehicles_threads.emplace_back(run_on_vehicle_at_rank, v_rank);
       }
     }

@@ -314,7 +314,7 @@ Solution format_solution(const Input& input, const RawSolution& raw_routes) {
                         priority,
                         sum_deliveries,
                         sum_pickups,
-                        v.profile,
+                        v.routing_profile,
                         v.description);
   }
 
@@ -805,7 +805,7 @@ Route format_route(const Input& input,
                priority,
                sum_deliveries,
                sum_pickups,
-               v.profile,
+               v.routing_profile,
                v.description);
 }
 

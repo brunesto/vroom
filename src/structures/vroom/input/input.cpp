@@ -394,14 +394,14 @@ void Input::add_vehicle(const Vehicle& vehicle) {
       _homogeneous_costs && vehicles.front().costs == vehicles.back().costs;
   }
 
-  _profiles.insert(current_v.profile);
+  _profiles.insert(current_v.routing_profile);
   if (current_v.costs.per_km != 0) {
-    _profiles_requiring_distances.insert(current_v.profile);
+    _profiles_requiring_distances.insert(current_v.routing_profile);
   }
 
-  if (auto search = _max_cost_per_hour.find(current_v.profile);
+  if (auto search = _max_cost_per_hour.find(current_v.routing_profile);
       search == _max_cost_per_hour.end()) {
-    _max_cost_per_hour.try_emplace(current_v.profile, current_v.costs.per_hour);
+    _max_cost_per_hour.try_emplace(current_v.routing_profile, current_v.costs.per_hour);
   } else {
     search->second = std::max(search->second, current_v.costs.per_hour);
   }
@@ -640,15 +640,15 @@ void Input::set_vehicles_compatibility() {
 void Input::set_vehicles_costs() {
   DEBUG_LOG("set_vehicles_costs() vehicles:"<<vehicles.size());
   for (auto& vehicle : vehicles) {
-    auto duration_m = _durations_matrices.find(vehicle.profile);
+    auto duration_m = _durations_matrices.find(vehicle.routing_profile);
     assert(duration_m != _durations_matrices.end());
     vehicle.cost_wrapper.set_durations_matrix(&(duration_m->second));
 
-    auto distance_m = _distances_matrices.find(vehicle.profile);
+    auto distance_m = _distances_matrices.find(vehicle.routing_profile);
     assert(distance_m != _distances_matrices.end());
     vehicle.cost_wrapper.set_distances_matrix(&(distance_m->second));
 
-    auto c_m = _costs_matrices.find(vehicle.profile);
+    auto c_m = _costs_matrices.find(vehicle.routing_profile);
     if (c_m != _costs_matrices.end()) {
       // A custom cost matrix is provided for this vehicle.
 

@@ -1487,7 +1487,7 @@ Route choose_ETA(const Input& input,
                priority,
                sum_deliveries,
                sum_pickups,
-               v.profile,
+               v.routing_profile,
                v.description,
                Violations(user_lead_time, user_delay, std::move(v_types)));
 }

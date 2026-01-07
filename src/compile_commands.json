@@ -38,6 +38,29 @@
       "USE_LIBGLPK=true",
       "-c",
       "-o",
+      "test_log.o",
+      "test_log.cpp"
+    ],
+    "directory": "/workspaces/vroom/src",
+    "file": "/workspaces/vroom/src/test_log.cpp",
+    "output": "/workspaces/vroom/src/test_log.o"
+  },
+  {
+    "arguments": [
+      "/usr/local/bin/g++",
+      "-I.",
+      "-std=c++20",
+      "-Wextra",
+      "-Wpedantic",
+      "-Wall",
+      "-O0",
+      "-g",
+      "-DASIO_STANDALONE",
+      "-DUSE_ROUTING=true",
+      "-D",
+      "USE_LIBGLPK=true",
+      "-c",
+      "-o",
       "algorithms/kruskal.o",
       "algorithms/kruskal.cpp"
     ],

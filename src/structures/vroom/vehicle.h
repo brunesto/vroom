@@ -69,7 +69,7 @@ struct Vehicle {
   const Id id;
   std::optional<Location> start;
   std::optional<Location> end;
-  const std::string profile;
+  const std::string routing_profile;
   const Amount capacity;
   const Skills skills;
   const TimeWindow tw;
@@ -80,6 +80,7 @@ struct Vehicle {
   size_t max_tasks;
   const Duration max_travel_time;
   const Distance max_distance;
+  // BRUNO: indicates if some break has a max_load
   const bool has_break_max_load;
   std::vector<VehicleStep> steps;
   Index type;
@@ -235,7 +236,7 @@ struct Vehicle {
     if (v.end.has_value()) {
       os << ",\"end\":" << v.end.value();
     }
-    os << ",\"profile\":\"" << v.profile << "\""
+    os << ",\"profile\":\"" << v.routing_profile << "\""
        << ",\"capacity\":" << v.capacity << ",\"skills\":[";
     bool first = true;
     for (const auto& s : v.skills) {

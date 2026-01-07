@@ -19,6 +19,9 @@ All rights reserved (see LICENSE).
 
 namespace vroom {
 
+// BRUNO: a break is a service that must be done by the vehicle at some point
+// but since it does not define a service vs pause time, I have the
+// impression that the number of breaks is predefined and the field service is actually the pause time
 /**
  * LLM:
  * @brief Represents a driver break.
