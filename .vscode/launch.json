@@ -25,6 +25,12 @@
                     "description": "Allow loading GDB plugins from any path",
                     "text": "set auto-load safe-path /",
                     "ignoreFailures": true
+                },
+                // there does not seem to be a way to skip the whole tree
+                {
+                "description": "Skip stepping into STL headers",
+                "text": "skip -gfi /usr/local/include/c++/13.4.0/bits/*",
+                "ignoreFailures": false
                 }
             ],
             "preLaunchTask": "make build" // This must match the label in tasks.json,
