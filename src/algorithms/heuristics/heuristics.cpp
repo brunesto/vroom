@@ -471,6 +471,7 @@ inline Eval fill_route(const Input& input,
                                                pickup_r,
                                                delivery_r);
 
+               
               modified_with_pd.pop_back();
 
               if (valid) {

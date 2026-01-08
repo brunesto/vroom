@@ -14,5 +14,12 @@
     ],
 
     // Ensure Microsoft IntelliSense is disabled to prevent conflicts
-    "C_Cpp.intelliSenseEngine": "disabled"
+    "C_Cpp.intelliSenseEngine": "disabled",
+   "workbench.colorCustomizations": {
+    "tab.inactiveBackground": "#333",
+    "tab.border": "#aaa",
+   }
+
+
+
 }
