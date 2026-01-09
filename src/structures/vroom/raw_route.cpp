@@ -348,7 +348,7 @@ void RawRoute::replace(const Input& input,
                   atDepot=pjAtDepot;\
                 }   
 bool RawRoute::is_return_to_depot_with_undelivered_jobs(const Input& input,                                                  
-                                                  const Index first_rank,int first_rank_location_index,
+                                                  const Index first_rank,int first_rank_location_index
                                                   ) const {
 
 

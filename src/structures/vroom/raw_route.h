@@ -295,9 +295,9 @@ public:
     return os;
   }
 
-bool is_no_return_to_depot_with_undelivered_jobs(const Input& input,                                                  
-                                                  const Index first_rank
-                                                  ) const;
+bool is_return_to_depot_with_undelivered_jobs(const Input& input,                                                  
+                                                  const Index first_rank=0,int first_rank_location_index=-1
+                                                  ) const ;
 };
 
 } // namespace vroom

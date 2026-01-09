@@ -1000,7 +1000,7 @@ bool TWRoute::is_valid_addition_for_tw(const Input& input,
 
 
      
-      if (!is_no_return_to_depot_with_undelivered_jobs(input, first_rank)){
+      if (is_return_to_depot_with_undelivered_jobs(input, first_rank,j.location_index())){
         return false;
       }
      
