@@ -26,6 +26,7 @@ SRC = $(wildcard *.cpp)\
 			$(wildcard ./structures/*.cpp)\
 			$(wildcard ./utils/*.cpp)
 
+
 # Remove routing if we don't require it
 ifeq ($(USE_ROUTING),false)
 	SRC := $(filter-out $(wildcard ./routing/*.cpp), $(SRC))
@@ -52,6 +53,10 @@ else
 	LDLIBS += -lglpk
 	CXXFLAGS += -D USE_LIBGLPK=true
 endif
+
+# remove main
+
+
 
 OBJ = $(SRC:.cpp=.o)
 DEPS = $(SRC:.cpp=.d)
@@ -84,3 +89,21 @@ clean :
 
 tidy : $(SRC)
 	clang-tidy $(SRC) -fix -- $(CXXFLAGS) -I/usr/include/c++/11/ -I/usr/include/x86_64-linux-gnu/c++/11/
+
+
+# Tests
+TEST_SRCS = $(wildcard ./tests/*.cpp)
+			
+OBJ_NO_MAIN = $(filter-out main.o, $(OBJ))
+
+# compile the test
+test_binary: $(OBJ_NO_MAIN) $(TEST_SRCS)
+#echo "OBJ_NO_MAIN: " $(OBJ_NO_MAIN)
+#echo "LDLIBS: " $(LDLIBS) 
+#echo "TEST_SRCS: " $(TEST_SRCS)
+	mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS)  -o $@ $(OBJ_NO_MAIN) $(LDLIBS) $(TEST_SRCS)
+
+# run the test
+test: test_binary
+	./test_binary

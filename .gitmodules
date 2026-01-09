@@ -7,3 +7,6 @@
 [submodule "include/rapidjson"]
 	path = include/rapidjson
 	url = https://github.com/Tencent/rapidjson
+[submodule "include/doctest"]
+	path = include/doctest
+	url = https://github.com/onqtam/doctest.git
