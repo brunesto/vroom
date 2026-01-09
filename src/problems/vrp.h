@@ -227,9 +227,10 @@ void run_single_search(const Input& input,
   Route& r = context.solutions[rank][4];
    {
     INFO_LOG(""<<r.to_string(&input));
-    if (!r.is_no_return_to_depot_with_undelivered_jobs(input, 0)){
+    if (r.is_return_to_depot_with_undelivered_jobs(input)){
       ERROR_LOG("no-undelivered-return-to-depot failed:"+r.to_string(&input));
-      r.is_no_return_to_depot_with_undelivered_jobs(input, 0);
+      // just for debug
+      r.is_return_to_depot_with_undelivered_jobs(input);
       throw std::runtime_error("no-undelivered-return-to-depot violation");
     }
   }
