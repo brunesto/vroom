@@ -11,6 +11,7 @@ All rights reserved (see LICENSE).
 */
 
 #include <cstddef>
+#include <cstdint>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
@@ -296,7 +297,7 @@ public:
   }
 
 bool is_return_to_depot_with_undelivered_jobs(const Input& input,                                                  
-                                                  const Index first_rank=0,int first_rank_location_index=-1
+                                                  const Index first_rank=0,int first_rank_jobId=UINT16_MAX
                                                   ) const ;
 };
 

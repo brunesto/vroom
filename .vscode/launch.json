@@ -33,7 +33,7 @@
                 "ignoreFailures": false
                 }
             ],
-            "preLaunchTask": "make build" // This must match the label in tasks.json,
+            "preLaunchTask": "build" // This must match the label in tasks.json,
            
         },
          {
@@ -54,7 +54,7 @@
          {
             "name": "Tests",
             "type": "cppdbg",
-            "noDebug": true,
+            
             "request": "launch",
             // TODO: Update this path to point to the binary created by 'make'
             "program": "${workspaceFolder}/bin/run_test",
@@ -64,6 +64,24 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Allow loading GDB plugins from any path",
+                    "text": "set auto-load safe-path /",
+                    "ignoreFailures": true
+                },
+                // there does not seem to be a way to skip the whole tree
+                {
+                "description": "Skip stepping into STL headers",
+                "text": "skip -gfi /usr/local/include/c++/13.4.0/bits/*",
+                "ignoreFailures": false
+                }
+            ],
             "preLaunchTask": "build-test" // This must match the label in tasks.json
         }
 

@@ -339,8 +339,9 @@ void RawRoute::replace(const Input& input,
  **/
 
 // definitely super dirty ... after years in java I miss freedom :P
-#define CHECK_CURRENT_LOCATION(x) bool pjAtDepot=(x)==0; \
+#define CHECK_CURRENT_LOCATION(x,reason) bool pjAtDepot=(x)==0; \
                 if (atDepot!=pjAtDepot){ \
+                  TTRACE_LOG(" depot changed to "<<pjAtDepot<<", because of "<< reason); \
                   depotChange++;\
                   if (depotChange>1){\
                     return true;\
@@ -348,24 +349,25 @@ void RawRoute::replace(const Input& input,
                   atDepot=pjAtDepot;\
                 }   
 bool RawRoute::is_return_to_depot_with_undelivered_jobs(const Input& input,                                                  
-                                                  const Index first_rank,int first_rank_location_index
+                                                  const Index first_rank,int first_rank_jobId
                                                   ) const {
 
 
-  TRACE_LOG(" is_return_to_depot_with_undelivered_jobs()");
+  TRACE_LOG(" is_return_to_depot_with_undelivered_jobs()"<< this->to_string(&input)<< " with jobId"<<first_rank_jobId<<" inserted @ "<<first_rank);
 
   // scan the route for deliveries after first_rank, 
   // and checks that their matching pickups are not before first_rank
   for (int r = 0; r < (int)route.size(); r++) {
 
 
-    TTRACE_LOG(" is_return_to_depot_with_undelivered_jobs[" << r << "]:" << route[r])
+    
                         
 
 
 
     const auto jobId = route[r];
     const auto& j = input.jobs[jobId];
+    TTRACE_LOG(" route["<<r<<"] jobdId:"<< route[r] << " of type "<< static_cast<int>(j.type)<< " @ location "<<j.location_index());
     if (j.type == JOB_TYPE::DELIVERY) {
       // s will be the backward scan index
       int s;
@@ -374,33 +376,34 @@ bool RawRoute::is_return_to_depot_with_undelivered_jobs(const Input& input,
 
       // current job is at depot?
       bool  atDepot=j.location_index()==0;
-
+      
       //  in case this job is actually at insertion point,
-      if (s==first_rank && first_rank_location_index!=-1){
-            CHECK_CURRENT_LOCATION(first_rank_location_index);
+      if (r==first_rank && first_rank_jobId!=UINT16_MAX){
+            CHECK_CURRENT_LOCATION( input.jobs[first_rank_jobId].location_index(),"insertion point just before r");
       }
 
     
       // now identify the matching pickup
       for (s = r - 1; s >= 0; s--) {
-
-        if (s==first_rank && first_rank_location_index!=-1){
+        
+        if (s==first_rank && first_rank_jobId!=UINT16_MAX){
           // we are at the insertion point
           // check against the inserted job location
-          CHECK_CURRENT_LOCATION(first_rank_location_index);
+          CHECK_CURRENT_LOCATION(input.jobs[first_rank_jobId].location_index(),"insertion point reached");
         }
 
-
-
+       
         const auto prevJobId = route[s];
         const auto& pj = input.jobs[prevJobId];
+        TTRACE_LOG("    bwd check route["<<s<<"]=jobdId:"<< prevJobId <<"@ location:"<< pj.location_index()<< " of type "<< static_cast<int>(j.type) )
+       
 
-        CHECK_CURRENT_LOCATION(pj.location_index());
+        CHECK_CURRENT_LOCATION(pj.location_index(),"job in backward scan");
       
         
         if (pj.type == JOB_TYPE::PICKUP) {
           // BRUNO: is this the matching pickup?  i am not sure about the predicate...
-          const auto pd_match = pj.id + 1 == j.id;
+          const auto pd_match = (pj.id + 1 == j.id);
           if (pd_match) {                 
             break;
           }
