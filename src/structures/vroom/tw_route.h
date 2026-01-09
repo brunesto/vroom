@@ -184,9 +184,7 @@ public:
   };
 
 
-  bool is_no_return_to_depot_with_undelivered_jobs(const Input& input,                                                  
-                                                  const Index first_rank
-                                                  ) const;
+  
   // Check validity for inclusion of the range [first_job; last_job)
   // in the existing route at rank first_rank and before last_rank *in
   // place of* the current jobs that may be there. "delivery" is the

@@ -33,6 +33,9 @@ bool Operator::is_valid_for_target_range_bounds() const {
 }
 
 bool Operator::is_valid_for_range_bounds() const {
+
+  
+
   assert(s_vehicle == t_vehicle);
   assert(gain_computed);
 
@@ -48,5 +51,19 @@ std::vector<Index> Operator::required_unassigned() const {
 bool Operator::invalidated_by(Index) const {
   return false;
 }
+
+bool Operator::is_valid2(){
+    bool retVal = is_valid();
+
+    if (!retVal)
+      return false;
+    bool depot_check_target= target.is_no_return_to_depot_with_undelivered_jobs(_input, t_rank);
+    if (!depot_check_target)
+      return false;
+    bool depot_check_src= source.is_no_return_to_depot_with_undelivered_jobs(_input, s_rank);
+    return depot_check_src;
+   
+    //TRACE_LOG("operator "<< _name <<" is_valid: "<< retVal);
+  }
 
 } // namespace vroom::ls

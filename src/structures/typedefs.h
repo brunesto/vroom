@@ -234,6 +234,73 @@ enum OperatorName : std::uint8_t {
   MAX
 };
 
+
+inline std::ostream& operator<<(std::ostream& os, const OperatorName& op_name) {
+  switch(op_name) {
+    case OperatorName::UnassignedExchange:
+      os << "UnassignedExchange";
+      break;
+    case OperatorName::CrossExchange:
+      os << "CrossExchange";
+      break;
+    case OperatorName::MixedExchange:
+      os << "MixedExchange";
+      break;
+    case OperatorName::TwoOpt:
+      os << "TwoOpt";
+      break;
+    case OperatorName::ReverseTwoOpt:
+      os << "ReverseTwoOpt";
+      break;
+    case OperatorName::Relocate:
+      os << "Relocate";
+      break;
+    case OperatorName::OrOpt:
+      os << "OrOpt";
+      break;
+    case OperatorName::IntraExchange:
+      os << "IntraExchange";
+      break;
+    case OperatorName::IntraCrossExchange:
+      os << "IntraCrossExchange";
+      break;
+    case OperatorName::IntraMixedExchange:
+      os << "IntraMixedExchange";
+      break;
+    case OperatorName::IntraRelocate:
+      os << "IntraRelocate";
+      break;
+    case OperatorName::IntraOrOpt:
+      os << "IntraOrOpt";
+      break;
+    case OperatorName::IntraTwoOpt:
+      os << "IntraTwoOpt";
+      break;
+    case OperatorName::PDShift:
+      os << "PDShift";
+      break;
+    case OperatorName::RouteExchange:
+      os << "RouteExchange";
+      break;
+    case OperatorName::SwapStar:
+      os << "SwapStar";
+      break;
+    case OperatorName::RouteSplit:
+      os << "RouteSplit";
+      break;
+    case OperatorName::PriorityReplace:
+      os << "PriorityReplace";
+      break;
+    case OperatorName::TSPFix:
+      os << "TSPFix";
+      break;
+    default:
+      os << "UnknownOperator";
+  }
+  return os;
+}
+
+
 // Defined based on
 // https://sonarcloud.io/organizations/vroom-project/rules?open=cpp%3AS6045&rule_key=cpp%3AS6045
 struct StringHash {

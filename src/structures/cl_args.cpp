@@ -80,6 +80,9 @@ void CLArgs::set_exploration_level(unsigned exploration_level) {
   depth = utils::get_depth(exploration_level);
 
   nb_searches = utils::get_nb_searches(exploration_level);
+  INFO_LOG("Exploration level set to " << exploration_level
+                                     << " => depth: " << depth
+                                     << ", nb_searches: " << nb_searches);
 }
 
 } // namespace vroom::io

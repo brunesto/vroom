@@ -45,7 +45,7 @@ class JSONWrapperHandler(http.server.BaseHTTPRequestHandler):
                 [BINARY_PATH] + [x for x in BINARY_ARGS if x] + request_args,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
-                stderr=sys.stderr,
+                stderr=sys.stdout,
                 shell=False
             )
             

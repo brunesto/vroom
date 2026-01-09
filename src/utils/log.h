@@ -20,6 +20,8 @@ extern const bool TRACE_ENABLED ;
 extern const bool DEBUG_ENABLED ;
 extern const bool TTRACE_ENABLED ;
 extern const bool INFO_ENABLED ;
+extern const bool WARN_ENABLED ;
+extern const bool ERROR_ENABLED ;
 
 }
 
@@ -28,6 +30,8 @@ extern const bool INFO_ENABLED ;
 #define TRACE_LOG(x) if (vroom::TRACE_ENABLED){std::cerr << "👾 [TRACE] " << vroom::get_basename(__FILE__) << ":" << __LINE__ << " -> " << x << std::endl;} else {}
 #define DEBUG_LOG(x) if (vroom::DEBUG_ENABLED){std::cerr << "🪲 [DEBUG] " << vroom::get_basename(__FILE__) << ":" << __LINE__ << " -> " << x << std::endl;} else {}
 #define INFO_LOG(x) if (vroom::INFO_ENABLED){std::cerr << " ℹ️ [INFO] " << vroom::get_basename(__FILE__) << ":" << __LINE__ << " -> " << x << std::endl;} else {}
+#define WARN_LOG(x) if (vroom::WARN_ENABLED){std::cerr << "⚠️ [WARN] " << vroom::get_basename(__FILE__) << ":" << __LINE__ << " -> " << x << std::endl;} else {}
+#define ERROR_LOG(x) if (vroom::ERROR_ENABLED){std::cerr << " ❌ [ERROR] " << vroom::get_basename(__FILE__) << ":" << __LINE__ << " -> " << x << std::endl;} else {}
 
 
 #endif

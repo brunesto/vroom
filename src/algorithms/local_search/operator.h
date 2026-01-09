@@ -98,6 +98,10 @@ public:
       t_route(t_raw_route.route),
       t_vehicle(t_vehicle),
       t_rank(t_rank) {
+
+        TRACE_LOG("operator "<< _name <<" between vehicle "
+                  << s_vehicle << " rank " << s_rank << " and vehicle "
+                  << t_vehicle << " rank " << t_rank);
   }
 
   OperatorName get_name() const;
@@ -119,6 +123,7 @@ public:
    *
    * @return True if the move can be applied without violating constraints.
    */
+  bool is_valid2();
   virtual bool is_valid() = 0;
 
   /**

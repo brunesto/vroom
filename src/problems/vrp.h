@@ -222,6 +222,18 @@ void run_single_search(const Input& input,
   // Local search phase.
   LocalSearch ls(input, context.solutions[rank], depth, ls_search_time);
   ls.run();
+  // BRUNO: ensure no-undelivered-return-to-depot
+  INFO_LOG("vvvvvvvvvvvvvvvvvvvvvvvvvvvv local search "<<rank<<" completed vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv");
+  Route& r = context.solutions[rank][4];
+   {
+    INFO_LOG(""<<r.to_string(&input));
+    if (!r.is_no_return_to_depot_with_undelivered_jobs(input, 0)){
+      ERROR_LOG("no-undelivered-return-to-depot failed:"+r.to_string(&input));
+      r.is_no_return_to_depot_with_undelivered_jobs(input, 0);
+      throw std::runtime_error("no-undelivered-return-to-depot violation");
+    }
+  }
+  INFO_LOG("^^^^^^^^^^^^^^^^^^^^^^^^");
 
   // Store solution indicators.
   context.sol_indicators[rank] = ls.indicators();
@@ -269,7 +281,7 @@ protected:
     const std::vector<HeuristicParameters>& heterogeneous_parameters) const {
 
     
-    DEBUG_LOG("solve() nb_searches:"<< nb_searches <<" nb_threads:"<< nb_threads);
+    INFO_LOG("*** solve() nb_searches:"<< nb_searches <<" nb_threads:"<< nb_threads);
 
     const auto& parameters = (_input.has_homogeneous_locations())
                                ? homogeneous_parameters
@@ -317,6 +329,7 @@ protected:
       } catch (...) {
         const std::scoped_lock<std::mutex> lock(ep_m);
         ep = std::current_exception();
+       
       }
       semaphore.release();
     };
