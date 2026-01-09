@@ -49,7 +49,23 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "preLaunchTask": "make build" // This must match the label in tasks.json
+            "preLaunchTask": "build" // This must match the label in tasks.json
+        },
+         {
+            "name": "Tests",
+            "type": "cppdbg",
+            "noDebug": true,
+            "request": "launch",
+            // TODO: Update this path to point to the binary created by 'make'
+            "program": "${workspaceFolder}/bin/run_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "preLaunchTask": "build-test" // This must match the label in tasks.json
         }
+
     ]
 }

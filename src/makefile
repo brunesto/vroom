@@ -11,6 +11,7 @@ LDLIBS = -lpthread
 
 # Using all cpp files in current directory.
 MAIN = ../bin/vroom
+
 LIB = ../lib/libvroom.a
 SRC = $(wildcard *.cpp)\
 			$(wildcard ./algorithms/*.cpp)\
@@ -93,17 +94,19 @@ tidy : $(SRC)
 
 # Tests
 TEST_SRCS = $(wildcard ./tests/*.cpp)
-			
+MAIN_TEST = ../bin/vroom_test		
 OBJ_NO_MAIN = $(filter-out main.o, $(OBJ))
 
 # compile the test
-test_binary: $(OBJ_NO_MAIN) $(TEST_SRCS)
+build_test: $(OBJ_NO_MAIN) $(TEST_SRCS)
 #echo "OBJ_NO_MAIN: " $(OBJ_NO_MAIN)
 #echo "LDLIBS: " $(LDLIBS) 
 #echo "TEST_SRCS: " $(TEST_SRCS)
 	mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS)  -o $@ $(OBJ_NO_MAIN) $(LDLIBS) $(TEST_SRCS)
+	$(CXX) $(CXXFLAGS)  -o ../bin/run_test $(OBJ_NO_MAIN) $(LDLIBS) $(TEST_SRCS)
+
 
 # run the test
-test: test_binary
-	./test_binary
+#.PHONY: run_test
+run_test: build_test
+	../bin/run_test

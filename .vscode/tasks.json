@@ -1,7 +1,7 @@
 {
     "tasks": [
         {
-            "label": "make build",   // Name of the task, referenced in launch.json
+            "label": "build",   // Name of the task, referenced in launch.json
             "type": "shell",
             "options": {
                 "cwd": "${workspaceFolder}/src" 
@@ -14,7 +14,22 @@
             },
             "problemMatcher": ["$gcc"], // Captures compile errors in the "Problems" tab
             "detail": "debug"
-        }    
+        },
+         {
+            "label": "build-test",   // Name of the task, referenced in launch.json
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}/src" 
+            },
+            "command": "make",       // do NOT run bear here, as it would empty compile_commands.json
+            "args": ["build_test"],              
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": ["$gcc"], // Captures compile errors in the "Problems" tab
+            "detail": "debug"
+        }        
     ],
     "version": "2.0.0"
 }
