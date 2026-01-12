@@ -8,6 +8,7 @@ All rights reserved (see LICENSE).
 */
 
 #include "utils/log.h"
+#include <cstdint>
 #include "structures/vroom/raw_route.h"
 
 namespace vroom {
@@ -338,6 +339,65 @@ void RawRoute::replace(const Input& input,
 
  **/
 
+
+ /**
+ * this is a helper class to navigate a route with an insertion
+ */
+template <std::forward_iterator Iter>
+class RouteWithInsertion{
+   const Index first_rank;
+    const Iter first_job;
+    const Iter last_job;
+    int size;
+    const std::vector<Index> *route;
+    public:
+  RouteWithInsertion(
+    const std::vector<Index> *route,
+    const Index first_rank,
+    const Iter first_job,
+    const Iter last_job)// 3. Use Member Initializer List for const members
+    : route(route),
+      first_rank(first_rank), 
+      first_job(first_job), 
+      last_job(last_job),
+      size(std::distance(first_job, last_job))
+  {      assert(first_job <= last_job);
+    }
+
+  bool is_inserted(int i) const{
+    if (i<first_rank){
+      return false;
+    } 
+    if (i< first_rank + size){
+      return true;
+    }
+    return false;
+  }  
+  int get(int i) const {
+    if (i<first_rank){
+      return (*route)[i];
+    } 
+    if (i< first_rank + size){
+      return *(first_job + (i - first_rank));
+    }
+    return (*route)[i - size];
+    
+  }
+
+  std::string to_string([[maybe_unused]]const Input* input = nullptr) const {
+    std::ostringstream os;
+   
+    os << "RouteWithInsertion size:" << size << std::endl;
+    for (int i = 0; i < size; ++i) {
+      os << i << " " << std::setw(8) << std::setfill('0') << get(i) ;
+      os << (is_inserted(i) ? " (inserted)" : "(existing)");
+      os << std::endl;
+    }
+     return os.str();
+  }
+
+};
+
 // definitely super dirty ... after years in java I miss freedom :P
 #define CHECK_CURRENT_LOCATION(x,reason) bool pjAtDepot=(x)==0; \
                 if (atDepot!=pjAtDepot){ \
@@ -348,16 +408,36 @@ void RawRoute::replace(const Input& input,
                   }\
                   atDepot=pjAtDepot;\
                 }   
-bool RawRoute::is_return_to_depot_with_undelivered_jobs(const Input& input,                                                  
-                                                  const Index first_rank,int first_rank_jobId
-                                                  ) const {
+
+ // default type parameter is int*, so that the default dummies {} are of a given type
+  template <std::forward_iterator Iter>
+    bool RawRoute::is_return_to_depot_with_undelivered_jobs(const Input& input,                                                  
+                                                  const Index first_rank,
+                                                  const Iter first_job,
+                                                  const Iter last_job     
+                                                  ) const{
+  
+
+   RouteWithInsertion ri(&route, first_rank, first_job, last_job);
+   
+  TRACE_LOG(" is_return_to_depot_with_undelivered_jobs()"<< ri.to_string(&input));
+
+  return false;
+}
+
+bool RawRoute:: is_return_to_depot_with_undelivered_jobs_no_insertion (const Input& input,                                                  
+                                                  const Index first_rank) const{
+  TRACE_LOG(" is_return_to_depot_with_undelivered_jobs_no_insertion()");
+  // after hours of fighting against compiler and linker...
+  // we need to instanciate (force) the templates with concrete types that actually depends on tw_route and not raw_route
+  // ... what is wrong with using short* ?
+  return is_return_to_depot_with_undelivered_jobs< std::vector<Index>::const_iterator >(input,first_rank,{},{});
+}
 
 
-  TRACE_LOG(" is_return_to_depot_with_undelivered_jobs()"<< this->to_string(&input)<< " with jobId"<<first_rank_jobId<<" inserted @ "<<first_rank);
-
-  // scan the route for deliveries after first_rank, 
-  // and checks that their matching pickups are not before first_rank
-  for (int r = 0; r < (int)route.size(); r++) {
+//   // scan the route for deliveries after first_rank, 
+//   // and checks that their matching pickups are not before first_rank
+//   for (int r = 0; r < (int)route.size(); r++) {
 
 
     
@@ -365,68 +445,68 @@ bool RawRoute::is_return_to_depot_with_undelivered_jobs(const Input& input,
 
 
 
-    const auto jobId = route[r];
-    const auto& j = input.jobs[jobId];
-    TTRACE_LOG(" route["<<r<<"] jobdId:"<< route[r] << " of type "<< static_cast<int>(j.type)<< " @ location "<<j.location_index());
-    if (j.type == JOB_TYPE::DELIVERY) {
-      // s will be the backward scan index
-      int s;
-        // track the number of time we enter or leave the depot
-      int depotChange=0;
+//     uint16_t jobId = route[r];
+//     const auto& j = input.jobs[jobId];
+//     TTRACE_LOG(" route["<<r<<"] jobdId:"<< route[r] << " of type "<< static_cast<int>(j.type)<< " @ location "<<j.location_index());
+//     if (j.type == JOB_TYPE::DELIVERY) {
+//       // s will be the backward scan index
+//       int s;
+//         // track the number of time we enter or leave the depot
+//       int depotChange=0;
 
-      // current job is at depot?
-      bool  atDepot=j.location_index()==0;
+//       // current job is at depot?
+//       bool  atDepot=j.location_index()==0;
       
-      //  in case this job is actually at insertion point,
-      if (r==first_rank && first_rank_jobId!=UINT16_MAX){
-            CHECK_CURRENT_LOCATION( input.jobs[first_rank_jobId].location_index(),"insertion point just before r");
-      }
+//       //  in case this job is actually at insertion point,
+//       if (r==first_rank && first_rank_jobId!=UINT16_MAX){
+//             CHECK_CURRENT_LOCATION( input.jobs[first_rank_jobId].location_index(),"insertion point just before r");
+//       }
 
     
-      // now identify the matching pickup
-      for (s = r - 1; s >= 0; s--) {
+//       // now identify the matching pickup
+//       for (s = r - 1; s >= 0; s--) {
         
-        if (s==first_rank && first_rank_jobId!=UINT16_MAX){
-          // we are at the insertion point
-          // check against the inserted job location
-          CHECK_CURRENT_LOCATION(input.jobs[first_rank_jobId].location_index(),"insertion point reached");
-        }
+//         if (s==first_rank && first_rank_jobId!=UINT16_MAX){
+//           // we are at the insertion point
+//           // check against the inserted job location
+//           CHECK_CURRENT_LOCATION(input.jobs[first_rank_jobId].location_index(),"insertion point reached");
+//         }
 
        
-        const auto prevJobId = route[s];
-        const auto& pj = input.jobs[prevJobId];
-        TTRACE_LOG("    bwd check route["<<s<<"]=jobdId:"<< prevJobId <<"@ location:"<< pj.location_index()<< " of type "<< static_cast<int>(j.type) )
+//         const auto prevJobId = route[s];
+//         const auto& pj = input.jobs[prevJobId];
+//         TTRACE_LOG("    bwd check route["<<s<<"]=jobdId:"<< prevJobId <<"@ location:"<< pj.location_index()<< " of type "<< static_cast<int>(j.type) )
        
 
-        CHECK_CURRENT_LOCATION(pj.location_index(),"job in backward scan");
+//         CHECK_CURRENT_LOCATION(pj.location_index(),"job in backward scan");
       
         
-        if (pj.type == JOB_TYPE::PICKUP) {
-          // BRUNO: is this the matching pickup?  i am not sure about the predicate...
-          const auto pd_match = (pj.id + 1 == j.id);
-          if (pd_match) {                 
-            break;
-          }
+//         if (pj.type == JOB_TYPE::PICKUP) {
+//           // BRUNO: is this the matching pickup?  i am not sure about the predicate...
+//           const auto pd_match = (pj.id + 1 == j.id);
+//           if (pd_match) {                 
+//             break;
+//           }
         
 
-          // nice code generated by LLM: it check against the max delivery
-          // duration const auto travelTime =
-          // v.duration(pj.location_index(), j.location_index()); const auto
-          // earliestStart = earliest[s] + action_time[s] + travelTime; if
-          // (earliestStart > latest[r]){
-          //   TTRACE_LOG(" Insertion breaks delivery TW for job "<< j.id<<"
-          //   earliestStart:"<<t2str(earliestStart)<<"
-          //   latest:"<<t2str(latest[r]) ); return false;
-        }
-        // if we hit s==0 at this point, it means no matching pickup found
-        assert(s!=0);  
-      }
+//           // nice code generated by LLM: it check against the max delivery
+//           // duration const auto travelTime =
+//           // v.duration(pj.location_index(), j.location_index()); const auto
+//           // earliestStart = earliest[s] + action_time[s] + travelTime; if
+//           // (earliestStart > latest[r]){
+//           //   TTRACE_LOG(" Insertion breaks delivery TW for job "<< j.id<<"
+//           //   earliestStart:"<<t2str(earliestStart)<<"
+//           //   latest:"<<t2str(latest[r]) ); return false;
+//         }
+//         // if we hit s==0 at this point, it means no matching pickup found
+//         assert(s!=0);  
+//       }
       
-    }
-  }
-  return false;
+//     }
+//   }
+//   return false;
 
-}
+// }
 
 template bool RawRoute::is_valid_addition_for_capacity_inclusion(
   const Input& input,
@@ -461,6 +541,47 @@ template void RawRoute::replace(const Input& input,
                                 const Index last_rank);
 
 
+template bool RawRoute::is_return_to_depot_with_undelivered_jobs(
+  const Input& input,
+  const Index first_rank,
+    std::vector<Index>::iterator first_job,
+    std::vector<Index>::iterator last_job) const;
+
+
+template bool RawRoute::is_return_to_depot_with_undelivered_jobs(
+  const Input& input,
+  const Index first_rank,
+  const std::vector<Index>::const_iterator first_job,
+  const std::vector<Index>::const_iterator last_job) const;
+
+
+template bool RawRoute::is_return_to_depot_with_undelivered_jobs(
+  const Input& input,
+  const Index first_rank,
+  const std::vector<Index>::reverse_iterator first_job,
+  const std::vector<Index>::reverse_iterator last_job) const;
+
+  // template bool RawRoute::is_return_to_depot_with_undelivered_jobs(
+  // const Input& input,
+  // const Index first_rank,
+  // const uint16_t* first_job,
+  // const uint16_t* last_job) const;
+
+  template bool RawRoute::is_return_to_depot_with_undelivered_jobs(
+  const Input& input,
+  const Index first_rank,
+  const std::array<Index, 1>::const_iterator first_job,
+  const std::array<Index, 1>::const_iterator last_job
+) const;
+
+template bool RawRoute::is_return_to_depot_with_undelivered_jobs(
+  const Input& input,
+  const Index first_rank,
+  const std::array<Index, 1>::reverse_iterator first_job,
+  const std::array<Index, 1>::reverse_iterator last_job
+) const;
 
 
 } // namespace vroom
+
+

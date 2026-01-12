@@ -1000,9 +1000,6 @@ bool TWRoute::is_valid_addition_for_tw(const Input& input,
 
 
      
-      if (is_return_to_depot_with_undelivered_jobs(input, first_rank,j.location_index())){
-        return false;
-      }
      
 
       ++current_job;
@@ -1160,7 +1157,14 @@ bool TWRoute::is_valid_addition_for_tw(const Input& input,
     }
   }
 
-  return current.earliest_end + lastJobAtLastRank.travel_time_to <= lastJobAtLastRank.latest_start;
+  bool retval= current.earliest_end + lastJobAtLastRank.travel_time_to <= lastJobAtLastRank.latest_start;
+  if (!retval){
+    return false;
+  }
+
+
+  return  is_return_to_depot_with_undelivered_jobs(input, first_rank,first_job,last_job);
+        
 }
 
 /** LLM: 

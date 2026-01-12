@@ -8,6 +8,7 @@ All rights reserved (see LICENSE).
 */
 
 #include "algorithms/local_search/operator.h"
+#include <cstdint>
 
 namespace vroom::ls {
 
@@ -57,10 +58,10 @@ bool Operator::is_valid2(){
     if (!retVal)
       return false;
 
-    bool depot_check_target= target.is_return_to_depot_with_undelivered_jobs(_input);
+    bool depot_check_target= target.is_return_to_depot_with_undelivered_jobs_no_insertion(_input);
     if (depot_check_target)
       return false;
-    bool depot_check_src= source.is_return_to_depot_with_undelivered_jobs(_input);
+    bool depot_check_src= source.is_return_to_depot_with_undelivered_jobs_no_insertion(_input);
     return !depot_check_src;
    
     //TRACE_LOG("operator "<< _name <<" is_valid: "<< retVal);

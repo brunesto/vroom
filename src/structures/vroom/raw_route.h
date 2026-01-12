@@ -295,11 +295,21 @@ public:
     }
     return os;
   }
-
-bool is_return_to_depot_with_undelivered_jobs(const Input& input,                                                  
-                                                  const Index first_rank=0,int first_rank_jobId=UINT16_MAX
-                                                  ) const ;
+  // default type parameter is int*, so that the default dummies {} are of a given type
+  template <std::forward_iterator Iter>
+    bool is_return_to_depot_with_undelivered_jobs(const Input& input,                                                  
+                                                  const Index first_rank=0,
+                                                  const Iter first_job={},
+                                                  const Iter last_job={}     
+                                                  ) const;
+                                       
+ bool is_return_to_depot_with_undelivered_jobs_no_insertion(const Input& input,                                                  
+                                                  const Index first_rank=0
+                                                  
+                                                  ) const;
+                                                                                         
 };
+
 
 } // namespace vroom
 

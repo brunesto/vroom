@@ -11,6 +11,7 @@ All rights reserved (see LICENSE).
 */
 
 #include <algorithm>
+#include <cstdint>
 #include <mutex>
 #include <numeric>
 #include <ranges>
@@ -227,10 +228,10 @@ void run_single_search(const Input& input,
   Route& r = context.solutions[rank][4];
    {
     INFO_LOG(""<<r.to_string(&input));
-    if (r.is_return_to_depot_with_undelivered_jobs(input)){
+    if (r.is_return_to_depot_with_undelivered_jobs_no_insertion(input)){
       ERROR_LOG("no-undelivered-return-to-depot failed:"+r.to_string(&input));
       // just for debug
-      r.is_return_to_depot_with_undelivered_jobs(input);
+      r.is_return_to_depot_with_undelivered_jobs_no_insertion(input);
       throw std::runtime_error("no-undelivered-return-to-depot violation");
     }
   }
