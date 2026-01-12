@@ -371,7 +371,7 @@ class RouteWithInsertion{
     if (i<first_rank){
       return false;
     } 
-    if (i< first_rank + size){
+    if (i< first_rank + inserted_size){
       return true;
     }
     return false;

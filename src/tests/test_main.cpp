@@ -117,40 +117,54 @@ const uint16_t S16_DD=29;
 
 
 
-void riding(int first_job,int last_job) {
+TEST_CASE("with insertion 1") {
 
-
-    
+    int first_job=S02_PD;
+    int last_job=UINT16_MAX;
+    std::vector<uint16_t> stops={
+        S00_PD,S01_PD,S00_DC,S01_DC};
 
     // inserting pickup at depot
     for(int i=0;i<=2;i++){
-        test_is_return_to_depot_with_undelivered_jobs(false,{
-        S00_PD,S01_PD,S00_DC,S01_DC},
+        test_is_return_to_depot_with_undelivered_jobs(false,stops,
         i,first_job,last_job);
     }
 
     // inserting pickup at depot at end
-    test_is_return_to_depot_with_undelivered_jobs(false,{
-    S00_PD,S01_PD,S00_DC,S01_DC},
+    test_is_return_to_depot_with_undelivered_jobs(false,stops,
     4,first_job,last_job);
 
 
     // inserting pickup in the middle will fail
-    test_is_return_to_depot_with_undelivered_jobs(true,{
-    S00_PD,S01_PD,S00_DC,S01_DC},
+    test_is_return_to_depot_with_undelivered_jobs(true,stops,
     3,first_job,last_job);
+}
 
+
+
+TEST_CASE("with insertion 2") {
+
+    int first_job=S02_PD;
+    int last_job=S02_DC;
+    std::vector<uint16_t> stops={
+        S00_PD,S01_PD,S00_DC,S01_DC};
+
+    // inserting at depot at start
+    test_is_return_to_depot_with_undelivered_jobs(false,stops,0,first_job,last_job);
+   
+    // inserting at depot at end
+    test_is_return_to_depot_with_undelivered_jobs(false,stops,4,first_job,last_job);
+
+
+    // inserting pickup just before leaving depor works
+    test_is_return_to_depot_with_undelivered_jobs(false,stops,2,first_job,last_job);
+
+    test_is_return_to_depot_with_undelivered_jobs(true,stops,1,first_job,last_job);
+    test_is_return_to_depot_with_undelivered_jobs(true,stops,3,first_job,last_job);
     
 }
 
 
-TEST_CASE("with insertion 1") {
-    riding(S02_PD,UINT16_MAX);
-}
-
-TEST_CASE("with insertion 2") {
-    riding(S02_PD,S02_DC);
-}
 
 
 // 3) here comes the tough part: testing a route with unapplied change
