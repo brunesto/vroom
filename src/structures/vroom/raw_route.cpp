@@ -345,12 +345,14 @@ void RawRoute::replace(const Input& input,
  */
 template <std::forward_iterator Iter>
 class RouteWithInsertion{
+   public:
    const Index first_rank;
     const Iter first_job;
     const Iter last_job;
     int size;
+    int inserted_size;
     const std::vector<Index> *route;
-    public:
+   
   RouteWithInsertion(
     const std::vector<Index> *route,
     const Index first_rank,
@@ -360,7 +362,8 @@ class RouteWithInsertion{
       first_rank(first_rank), 
       first_job(first_job), 
       last_job(last_job),
-      size(std::distance(first_job, last_job))
+      size(route->size()+std::distance(first_job, last_job)),
+      inserted_size(std::distance(first_job, last_job))
   {      assert(first_job <= last_job);
     }
 
@@ -377,10 +380,11 @@ class RouteWithInsertion{
     if (i<first_rank){
       return (*route)[i];
     } 
-    if (i< first_rank + size){
-      return *(first_job + (i - first_rank));
+    if (i< first_rank + inserted_size){
+      auto offset=i - first_rank;
+      return *(first_job + (offset));
     }
-    return (*route)[i - size];
+    return (*route)[i - inserted_size];
     
   }
 
@@ -398,29 +402,78 @@ class RouteWithInsertion{
 
 };
 
-// definitely super dirty ... after years in java I miss freedom :P
-#define CHECK_CURRENT_LOCATION(x,reason) bool pjAtDepot=(x)==0; \
-                if (atDepot!=pjAtDepot){ \
-                  TTRACE_LOG(" depot changed to "<<pjAtDepot<<", because of "<< reason); \
-                  depotChange++;\
-                  if (depotChange>1){\
-                    return true;\
-                  }\
-                  atDepot=pjAtDepot;\
-                }   
+// // definitely super dirty ... after years in java I miss freedom :P
+// #define CHECK_CURRENT_LOCATION(x,reason) bool pjAtDepot=(x)==0; \
+//                 if (atDepot!=pjAtDepot){ \
+//                   TTRACE_LOG(" depot changed to "<<pjAtDepot<<", because of "<< reason); \
+//                   depotChange++;\
+//                   if (depotChange>1){\
+//                     return true;\
+//                   }\
+//                   atDepot=pjAtDepot;\
+//                 }   
 
  // default type parameter is int*, so that the default dummies {} are of a given type
   template <std::forward_iterator Iter>
-    bool RawRoute::is_return_to_depot_with_undelivered_jobs(const Input& input,                                                  
+  bool RawRoute::is_return_to_depot_with_undelivered_jobs(const Input& input,                                                  
                                                   const Index first_rank,
                                                   const Iter first_job,
                                                   const Iter last_job     
                                                   ) const{
   
 
-   RouteWithInsertion ri(&route, first_rank, first_job, last_job);
+  RouteWithInsertion ri(&route, first_rank, first_job, last_job);
    
   TRACE_LOG(" is_return_to_depot_with_undelivered_jobs()"<< ri.to_string(&input));
+
+  for (int r = 0; r < ri.size; r++) {
+    uint16_t rjobId = ri.get(r);
+    const auto& rj = input.jobs[rjobId];
+
+    TTRACE_LOG(" RouteWithInsertion["<<r<<"] ("<<(ri.is_inserted(r)?"inserted":"existing")<<") jobdId:"<< rjobId << " of type "<< static_cast<int>(rj.type)<< " @ location "<<rj.location_index());
+
+    if (rj.type == JOB_TYPE::DELIVERY) {
+     
+        // track the number of time we enter or leave the depot
+      int depotChange=0;
+
+      // atDepot indicates if current location is at depot
+      bool atDepot=rj.location_index()==0;
+
+       // s will be the backward scan index
+      int s;
+      // now identify the matching pickup
+      for (s = r - 1; s >= 0; s--) {
+        uint16_t sjobId = ri.get(s);
+        const auto& sj = input.jobs[sjobId];
+        TTRACE_LOG("    bwd check RouteWithInsertion["<<s<<"] ("<<(ri.is_inserted(s)?"inserted":"existing")<<") jobdId:"<< sjobId <<"@ location:"<< sj.location_index()<< " of type "<< static_cast<int>(sj.type) )
+
+        bool sAtDepot=(sj.location_index())==0;
+        if (sAtDepot!=atDepot){ 
+          TTRACE_LOG(" depot changed to "<<sAtDepot); 
+          depotChange++;
+          if (depotChange>1){
+            return true;
+          }
+          atDepot=sAtDepot;
+        }   
+      
+        
+        if (sj.type == JOB_TYPE::PICKUP) {
+          // BRUNO: is this the matching pickup?  i am not sure about the predicate...
+          // in my tests it is, what about debug real case
+          const auto pd_match = (sjobId+ 1 == rjobId);
+          if (pd_match) {                 
+            break;
+          }
+        }
+        // if we hit s==0 at this point, it means no matching pickup found, broken state
+        assert(s!=0);  
+      }
+     
+    }
+  } // end of main loop r
+
 
   return false;
 }
@@ -438,13 +491,6 @@ bool RawRoute:: is_return_to_depot_with_undelivered_jobs_no_insertion (const Inp
 //   // scan the route for deliveries after first_rank, 
 //   // and checks that their matching pickups are not before first_rank
 //   for (int r = 0; r < (int)route.size(); r++) {
-
-
-    
-                        
-
-
-
 //     uint16_t jobId = route[r];
 //     const auto& j = input.jobs[jobId];
 //     TTRACE_LOG(" route["<<r<<"] jobdId:"<< route[r] << " of type "<< static_cast<int>(j.type)<< " @ location "<<j.location_index());
@@ -580,7 +626,6 @@ template bool RawRoute::is_return_to_depot_with_undelivered_jobs(
   const std::array<Index, 1>::reverse_iterator first_job,
   const std::array<Index, 1>::reverse_iterator last_job
 ) const;
-
 
 } // namespace vroom
 

@@ -1,7 +1,9 @@
 // tests/test_main.cpp
 #ifndef DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <cstdint>
 #include <memory>
+#include <sys/types.h>
 #include "../include/doctest/doctest/doctest.h"
 #include "structures/typedefs.h"
 #include "structures/vroom/input/input.h"
@@ -19,12 +21,12 @@
 shipments 0-9: pickup at depot, delivery at customer (stops 0-19)
 shipments 19-20: pickup at customer, delivery at depot (stops 20-39)
 */
-void test_is_return_to_depot_with_undelivered_jobs(bool expected,std::vector<int> stops,const vroom::Index first_rank=0,int first_rank_jobId=UINT16_MAX){
+void test_is_return_to_depot_with_undelivered_jobs(bool expected,std::vector<uint16_t> stops,const vroom::Index first_rank=0,uint16_t first_job=UINT16_MAX,uint16_t last_job=UINT16_MAX){
     // 1) create a dummy input with 5 shipments
     vroom::Input input;
     auto depotLocation=vroom::Location(0);
 
-    vroom::Amount capacity(4);
+    vroom::Amount capacity(1);
     vroom::Vehicle vehicle_0(0, depotLocation, depotLocation,
       "profilename",capacity);
     input.vehicles.push_back(vehicle_0);
@@ -44,8 +46,8 @@ void test_is_return_to_depot_with_undelivered_jobs(bool expected,std::vector<int
         
        vroom::UserDuration default_setup=0;
        vroom::UserDuration default_service=0;
-        vroom::Amount delivery(4);
-        vroom::Amount pickup(4);
+        vroom::Amount delivery(1);
+        vroom::Amount pickup(1);
 
         vroom::Job job_p((vroom::Id)i*2, vroom::JOB_TYPE::PICKUP, *pickupLocation,
         default_setup,default_service,pickup);
@@ -59,56 +61,96 @@ void test_is_return_to_depot_with_undelivered_jobs(bool expected,std::vector<int
 
     // 2) create a route with the given stops
     int v=0;
-    vroom::RawRoute route(input, v, stops.size());
+    vroom::RawRoute route(input, v, 1);
     for (int num : stops){
         route.route.push_back(num);
     }      
     route.update_amounts(input);
 
-    assert(expected==route.is_return_to_depot_with_undelivered_jobs(input,first_rank,first_rank_jobId));
+    std::vector<uint16_t> insertedJobIds={};
+    if (first_job!=UINT16_MAX) {
+        insertedJobIds.push_back(first_job);
+    }
+    if (last_job!=UINT16_MAX) {
+        insertedJobIds.push_back(last_job);
+    }
+    
+    
+    auto actual=route.is_return_to_depot_with_undelivered_jobs(input,first_rank,insertedJobIds.begin(),insertedJobIds.end());
+    if (actual!=expected){
+        // run again for debug
+        route.is_return_to_depot_with_undelivered_jobs(input,first_rank,insertedJobIds.begin(),insertedJobIds.end());
+        assert(false);
+    }
+    
     
 }
 // constants for job ids:
 // Shipment #, Pickup/Deliver at Depot/Customer
 
 // shipments fwd: pickup at depot, delivery at customer
-const int S00_PD=0;
-const int S00_DC=1;
-const int S01_PD=2;
-const int S01_DC=3;
-const int S02_PD=4; 
-const int S02_DC=5;
-const int S03_PD=6;
-const int S03_DC=7;
-const int S04_PD=8;
-const int S04_DC=9;  
+const uint16_t S00_PD=0;
+const uint16_t S00_DC=1;
+const uint16_t S01_PD=2;
+const uint16_t S01_DC=3;
+const uint16_t S02_PD=4; 
+const uint16_t S02_DC=5;
+const uint16_t S03_PD=6;
+const uint16_t S03_DC=7;
+const uint16_t S04_PD=8;
+const uint16_t S04_DC=9;  
 // ... 5 more shipments
 
 // shipments back: pickup at customer, delivery at depot
-const int S10_PC=20;
-const int S10_DD=21;
-const int S11_PC=22;
-const int S11_DD=23;
-const int S12_PC=24; 
-const int S12_DD=25;
-const int S13_PC=26;
-const int S14_DD=27;
-const int S15_PC=28;
-const int S16_DD=29;  
+const uint16_t S10_PC=20;
+const uint16_t S10_DD=21;
+const uint16_t S11_PC=22;
+const uint16_t S11_DD=23;
+const uint16_t S12_PC=24; 
+const uint16_t S12_DD=25;
+const uint16_t S13_PC=26;
+const uint16_t S14_DD=27;
+const uint16_t S15_PC=28;
+const uint16_t S16_DD=29;  
 // ... 5 more shipments
 
 
 
 
-TEST_CASE("riding") {
+void riding(int first_job,int last_job) {
+
+
+    
 
     // inserting pickup at depot
+    for(int i=0;i<=2;i++){
+        test_is_return_to_depot_with_undelivered_jobs(false,{
+        S00_PD,S01_PD,S00_DC,S01_DC},
+        i,first_job,last_job);
+    }
+
+    // inserting pickup at depot at end
     test_is_return_to_depot_with_undelivered_jobs(false,{
     S00_PD,S01_PD,S00_DC,S01_DC},
-    2,S02_PD);
+    4,first_job,last_job);
+
+
+    // inserting pickup in the middle will fail
+    test_is_return_to_depot_with_undelivered_jobs(true,{
+    S00_PD,S01_PD,S00_DC,S01_DC},
+    3,first_job,last_job);
+
+    
 }
 
 
+TEST_CASE("with insertion 1") {
+    riding(S02_PD,UINT16_MAX);
+}
+
+TEST_CASE("with insertion 2") {
+    riding(S02_PD,S02_DC);
+}
 
 
 // 3) here comes the tough part: testing a route with unapplied change
