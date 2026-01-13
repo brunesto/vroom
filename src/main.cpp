@@ -13,6 +13,7 @@ All rights reserved (see LICENSE).
 
 
 #include "utils/log.h"
+#include "utils/extra_opts.h"
 
 
 
@@ -29,6 +30,8 @@ All rights reserved (see LICENSE).
 #include "utils/output_json.h"
 #include "utils/version.h"
 
+
+
 int main(int argc, char** argv) {
   vroom::io::CLArgs cl_args;
   std::vector<std::string> host_args;
@@ -36,6 +39,7 @@ int main(int argc, char** argv) {
   std::string router_arg;
   std::string limit_arg;
   std::string output_file;
+  std::string extra_options;
   unsigned exploration_level;
 
   INFO_LOG("started " << argc);
@@ -89,6 +93,10 @@ int main(int argc, char** argv) {
     ("stdin",
      "optional input positional arg",
      cxxopts::value<std::string>(cl_args.input));
+
+  options.add_options("extra")("extra",
+     "[no-return-undelivered-to-depot]",
+       cxxopts::value<std::string>(extra_options)->default_value(""));
 
   // we don't want to print debug args on --help
   options.add_options("debug_group")
@@ -199,6 +207,8 @@ int main(int argc, char** argv) {
     cl_args.input = buffer.str();
   }
 
+  vroom::parse_extra_options(extra_options);
+  
   try {
     // Build problem.
     vroom::Input problem_instance(cl_args.servers,

@@ -9,7 +9,7 @@
             "request": "launch",
             // TODO: Update this path to point to the binary created by 'make'
             "program": "${workspaceFolder}/bin/vroom",
-            "args": ["-i","${workspaceFolder}/vroom-in.json","-t","1","-x","3"],
+            "args": ["-i","${workspaceFolder}/vroom-in.json","-t","1","-x","3","--extra","no-return-undelivered-to-depot"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
