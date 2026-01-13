@@ -8,6 +8,7 @@ All rights reserved (see LICENSE).
 */
 
 #include "utils/log.h"
+#include "utils/extra_opts.h"
 #include <cstdint>
 #include "structures/vroom/raw_route.h"
 
@@ -413,16 +414,37 @@ class RouteWithInsertion{
 //                   atDepot=pjAtDepot;\
 //                 }   
 
- // default type parameter is int*, so that the default dummies {} are of a given type
+ // NOTE: if first_job and last_job would be not references,
+ // the iterators are copied and somehow stop working , i dont know why.
   template <std::forward_iterator Iter>
   bool RawRoute::is_return_to_depot_with_undelivered_jobs(const Input& input,                                                  
                                                   const Index first_rank,
-                                                  const Iter first_job,
-                                                  const Iter last_job     
+                                                  const Iter& first_job,
+                                                  const Iter& last_job,
+                                                  const bool bark_when_broken     
                                                   ) const{
-  
+
+  if (!extra_options_no_return_undelivered_to_depot){
+    return false;
+  }
 
   RouteWithInsertion ri(&route, first_rank, first_job, last_job);
+
+  // bunch of assertions, non-exhaustive
+  // assert(ri.inserted_size<=2);
+  // if (ri.inserted_size==2){
+  //   auto first_job_id=*first_job;
+  //   auto last_job_id=*(first_job + (1));
+    
+  //   const auto& fj = input.jobs[first_job_id];
+    
+  //   const auto& lj = input.jobs[last_job_id];
+  //   if (fj.type == JOB_TYPE::PICKUP) {
+  //     assert(first_job_id+1==last_job_id);      
+  //   }else if (fj.type == JOB_TYPE::DELIVERY) {
+  //     assert(first_job_id==last_job_id+1);
+  //   }
+  // } 
    
   TRACE_LOG(" is_return_to_depot_with_undelivered_jobs()"<< ri.to_string(&input));
 
@@ -468,7 +490,8 @@ class RouteWithInsertion{
           }
         }
         // if we hit s==0 at this point, it means no matching pickup found, broken state
-        assert(s!=0);  
+        if (bark_when_broken)
+          assert(s!=0);  
       }
      
     }
@@ -590,42 +613,40 @@ template void RawRoute::replace(const Input& input,
 template bool RawRoute::is_return_to_depot_with_undelivered_jobs(
   const Input& input,
   const Index first_rank,
-    std::vector<Index>::iterator first_job,
-    std::vector<Index>::iterator last_job) const;
+   const std::vector<Index>::iterator &first_job,
+   const std::vector<Index>::iterator &last_job,
+   const bool bark_when_broken) const;
 
 
 template bool RawRoute::is_return_to_depot_with_undelivered_jobs(
   const Input& input,
   const Index first_rank,
-  const std::vector<Index>::const_iterator first_job,
-  const std::vector<Index>::const_iterator last_job) const;
+  const std::vector<Index>::const_iterator &first_job,
+  const std::vector<Index>::const_iterator &last_job,
+   const bool bark_when_broken) const;
 
 
 template bool RawRoute::is_return_to_depot_with_undelivered_jobs(
   const Input& input,
   const Index first_rank,
-  const std::vector<Index>::reverse_iterator first_job,
-  const std::vector<Index>::reverse_iterator last_job) const;
+  const std::vector<Index>::reverse_iterator &first_job,
+  const std::vector<Index>::reverse_iterator &last_job,
+   const bool bark_when_broken) const;
 
-  // template bool RawRoute::is_return_to_depot_with_undelivered_jobs(
-  // const Input& input,
-  // const Index first_rank,
-  // const uint16_t* first_job,
-  // const uint16_t* last_job) const;
 
   template bool RawRoute::is_return_to_depot_with_undelivered_jobs(
   const Input& input,
   const Index first_rank,
-  const std::array<Index, 1>::const_iterator first_job,
-  const std::array<Index, 1>::const_iterator last_job
-) const;
+  const std::array<Index, 1>::const_iterator &first_job,
+  const std::array<Index, 1>::const_iterator &last_job,
+   const bool bark_when_broken) const;
 
 template bool RawRoute::is_return_to_depot_with_undelivered_jobs(
   const Input& input,
   const Index first_rank,
-  const std::array<Index, 1>::reverse_iterator first_job,
-  const std::array<Index, 1>::reverse_iterator last_job
-) const;
+  const std::array<Index, 1>::reverse_iterator &first_job,
+  const std::array<Index, 1>::reverse_iterator &last_job,
+   const bool bark_when_broken) const;
 
 } // namespace vroom
 

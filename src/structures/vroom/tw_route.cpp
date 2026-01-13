@@ -1163,7 +1163,7 @@ bool TWRoute::is_valid_addition_for_tw(const Input& input,
   }
 
 
-  return  is_return_to_depot_with_undelivered_jobs(input, first_rank,first_job,last_job);
+  return  !is_return_to_depot_with_undelivered_jobs(input, first_rank,first_job,last_job);
         
 }
 

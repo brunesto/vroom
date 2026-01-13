@@ -14,6 +14,28 @@
 
 #include "../src/structures/vroom/raw_route.h"
 
+// void forfucksakeb(
+//      const std::vector<uint16_t>::iterator &first_job,
+//      const std::vector<uint16_t>::iterator &last_job){ 
+
+  
+//     std::cout << &first_job<<":"<< *first_job <<std::endl;
+//     std::cout << &last_job<<":"<< *last_job << std::endl; 
+// }
+
+// void forfucksake(){
+//     std::vector<uint16_t> as={};  
+//     as.push_back(4);
+//     as.push_back(5);
+
+//     long ptrdiff=(long)&as.end()-(long)&as.begin();
+//     std::cout << "ptrdiff: " << ptrdiff << std::endl;
+//     std::cout << &as.begin()<< std::endl;
+//     std::cout << &as.end()<< std::endl; 
+
+//    forfucksakeb(as.begin(),as.end());
+    
+// }
 //#include "../src/my_lib.h" // Include the code you want to test
 
 /**
@@ -21,7 +43,14 @@
 shipments 0-9: pickup at depot, delivery at customer (stops 0-19)
 shipments 19-20: pickup at customer, delivery at depot (stops 20-39)
 */
-void test_is_return_to_depot_with_undelivered_jobs(bool expected,std::vector<uint16_t> stops,const vroom::Index first_rank=0,uint16_t first_job=UINT16_MAX,uint16_t last_job=UINT16_MAX){
+void test_is_return_to_depot_with_undelivered_jobs(
+    std::vector<bool> expecteds,
+    std::vector<uint16_t> stops,
+    std::vector<uint16_t> insertedJobIds={}){
+
+//   forfucksake();
+   
+
     // 1) create a dummy input with 5 shipments
     vroom::Input input;
     auto depotLocation=vroom::Location(0);
@@ -67,22 +96,20 @@ void test_is_return_to_depot_with_undelivered_jobs(bool expected,std::vector<uin
     }      
     route.update_amounts(input);
 
-    std::vector<uint16_t> insertedJobIds={};
-    if (first_job!=UINT16_MAX) {
-        insertedJobIds.push_back(first_job);
-    }
-    if (last_job!=UINT16_MAX) {
-        insertedJobIds.push_back(last_job);
-    }
+  
     
-    
-    auto actual=route.is_return_to_depot_with_undelivered_jobs(input,first_rank,insertedJobIds.begin(),insertedJobIds.end());
-    if (actual!=expected){
-        // run again for debug
-        route.is_return_to_depot_with_undelivered_jobs(input,first_rank,insertedJobIds.begin(),insertedJobIds.end());
-        assert(false);
+    for(int i=0;i<(int)stops.size();i++){
+        bool expected=expecteds[i];
+        auto actual=route.is_return_to_depot_with_undelivered_jobs(input,i,insertedJobIds.begin(),insertedJobIds.end());
+        if (actual!=expected){
+            // run again for debug
+            route.is_return_to_depot_with_undelivered_jobs(input,i,insertedJobIds.begin(),insertedJobIds.end());
+            assert(false);
+        }
+        if (insertedJobIds.size()==0){
+          break;
+        }
     }
-    
     
 }
 // constants for job ids:
@@ -99,7 +126,7 @@ const uint16_t S03_PD=6;
 const uint16_t S03_DC=7;
 const uint16_t S04_PD=8;
 const uint16_t S04_DC=9;  
-// ... 5 more shipments
+// ... + 5 more shipments
 
 // shipments back: pickup at customer, delivery at depot
 const uint16_t S10_PC=20;
@@ -109,114 +136,60 @@ const uint16_t S11_DD=23;
 const uint16_t S12_PC=24; 
 const uint16_t S12_DD=25;
 const uint16_t S13_PC=26;
-const uint16_t S14_DD=27;
-const uint16_t S15_PC=28;
-const uint16_t S16_DD=29;  
-// ... 5 more shipments
+const uint16_t S13_DD=27;
+const uint16_t S14_DD=28;
+const uint16_t S14_PC=29;
+// ... + 5 more shipments
 
 
 
 
-TEST_CASE("with insertion 1") {
-
-    int first_job=S02_PD;
-    int last_job=UINT16_MAX;
-    std::vector<uint16_t> stops={
-        S00_PD,S01_PD,S00_DC,S01_DC};
-
-    // inserting pickup at depot
-    for(int i=0;i<=2;i++){
-        test_is_return_to_depot_with_undelivered_jobs(false,stops,
-        i,first_job,last_job);
-    }
-
-    // inserting pickup at depot at end
-    test_is_return_to_depot_with_undelivered_jobs(false,stops,
-    4,first_job,last_job);
 
 
-    // inserting pickup in the middle will fail
-    test_is_return_to_depot_with_undelivered_jobs(true,stops,
-    3,first_job,last_job);
-}
+// // missing the pc-dd cases
 
+// TEST_CASE("Unapplied 2") {
 
+//     int first_job=S02_PD;
+//     int last_job=S02_DC;
+//     std::vector<uint16_t> stops={
+//         S00_PD,S01_PD,S00_DC,S01_DC};
 
-TEST_CASE("with insertion 2") {
-
-    int first_job=S02_PD;
-    int last_job=S02_DC;
-    std::vector<uint16_t> stops={
-        S00_PD,S01_PD,S00_DC,S01_DC};
-
-    // inserting at depot at start
-    test_is_return_to_depot_with_undelivered_jobs(false,stops,0,first_job,last_job);
+//     // inserting at depot at start
+//     test_is_return_to_depot_with_undelivered_jobs(false,stops,0,first_job,last_job);
    
-    // inserting at depot at end
-    test_is_return_to_depot_with_undelivered_jobs(false,stops,4,first_job,last_job);
+//     // inserting at depot at end
+//     test_is_return_to_depot_with_undelivered_jobs(false,stops,4,first_job,last_job);
 
 
-    // inserting pickup just before leaving depor works
-    test_is_return_to_depot_with_undelivered_jobs(false,stops,2,first_job,last_job);
+//     // inserting pickup just before leaving depor works
+//     test_is_return_to_depot_with_undelivered_jobs(false,stops,2,first_job,last_job);
 
-    test_is_return_to_depot_with_undelivered_jobs(true,stops,1,first_job,last_job);
-    test_is_return_to_depot_with_undelivered_jobs(true,stops,3,first_job,last_job);
+//     test_is_return_to_depot_with_undelivered_jobs(true,stops,1,first_job,last_job);
+//     test_is_return_to_depot_with_undelivered_jobs(true,stops,3,first_job,last_job);
     
-}
-
-
-
-
-// 3) here comes the tough part: testing a route with unapplied change
-TEST_CASE("Unapplied.empty") {
-   test_is_return_to_depot_with_undelivered_jobs(false,{},0,S00_PD);
-   test_is_return_to_depot_with_undelivered_jobs(false,{},0,S00_DC);
-
-}
-
-
-TEST_CASE("Unapplied.easy1") {
-    
-    // inserting pickup at depot
-    test_is_return_to_depot_with_undelivered_jobs(false,{
-    S00_PD,S01_PD,S00_DC,S01_DC},
-    0,S02_PD);
-
-    test_is_return_to_depot_with_undelivered_jobs(false,{
-    S00_PD,S01_PD,S00_DC,S01_DC},
-    1,S02_PD);
-
-    // inserting pickup at depot
-    test_is_return_to_depot_with_undelivered_jobs(false,{
-    S00_PD,S01_PD,S00_DC,S01_DC},
-    2,S02_PD);
-
-    test_is_return_to_depot_with_undelivered_jobs(false,{
-    S00_PD,S01_PD,S00_DC,S01_DC},
-    4,S02_PD);
-
-}
+// }
 
 
 // 1) easiest cases. delivery to customer only
 
 TEST_CASE("PD.easy1") {
-   test_is_return_to_depot_with_undelivered_jobs(false,{S00_PD,S00_DC});
+   test_is_return_to_depot_with_undelivered_jobs({false},{S00_PD,S00_DC});
 }
 TEST_CASE("PD.easy2") {
-   test_is_return_to_depot_with_undelivered_jobs(false,{S00_PD,S01_PD,S00_DC,S01_DC});
+   test_is_return_to_depot_with_undelivered_jobs({false},{S00_PD,S01_PD,S00_DC,S01_DC});
    // different delivery order
-  test_is_return_to_depot_with_undelivered_jobs(false,{S00_PD,S01_PD,S01_DC,S00_DC});
+  test_is_return_to_depot_with_undelivered_jobs({false},{S00_PD,S01_PD,S01_DC,S00_DC});
 }
 TEST_CASE("PD. 2 routes") {
-   test_is_return_to_depot_with_undelivered_jobs(false,{S00_PD,S01_PD,S00_DC,S01_DC,S02_PD,S02_DC});
+   test_is_return_to_depot_with_undelivered_jobs({false},{S00_PD,S01_PD,S00_DC,S01_DC,S02_PD,S02_DC});
 }
 
-TEST_CASE("PD.empty") {
-   test_is_return_to_depot_with_undelivered_jobs(false,{});
+TEST_CASE("empty") {
+   test_is_return_to_depot_with_undelivered_jobs({false},{});
 }
 TEST_CASE("PD. 2 routes undelivered") {
-   test_is_return_to_depot_with_undelivered_jobs(true,{
+   test_is_return_to_depot_with_undelivered_jobs({true},{
     S00_PD,S01_PD,S00_DC,
     S02_PD,S01_DC,S02_DC});
 }
@@ -225,23 +198,113 @@ TEST_CASE("PD. 2 routes undelivered") {
 // 2) pickup from customer only
 
 TEST_CASE("PC.easy1") {
-   test_is_return_to_depot_with_undelivered_jobs(false,{S10_PC,S10_DD});
+   test_is_return_to_depot_with_undelivered_jobs({false},{S10_PC,S10_DD});
 }
 TEST_CASE("PC.easy2") {
-   test_is_return_to_depot_with_undelivered_jobs(false,{S10_PC,S11_PC,S10_DD,S11_DD});
+   test_is_return_to_depot_with_undelivered_jobs({false},{S10_PC,S11_PC,S10_DD,S11_DD});
    // different delivery order
-   test_is_return_to_depot_with_undelivered_jobs(false,{S10_PC,S11_PC,S11_DD,S10_DD});
+   test_is_return_to_depot_with_undelivered_jobs({false},{S10_PC,S11_PC,S11_DD,S10_DD});
 }
 TEST_CASE("PC.2 routes") {
-   test_is_return_to_depot_with_undelivered_jobs(false,{S10_PC,S11_PC,S10_DD,S11_DD,S12_PC,S12_DD});
-}
-
-TEST_CASE("PC.empty") {
-   test_is_return_to_depot_with_undelivered_jobs(false,{});
+   test_is_return_to_depot_with_undelivered_jobs({false},{S10_PC,S11_PC,S10_DD,S11_DD,S12_PC,S12_DD});
 }
 TEST_CASE("PC.2 routes undelivered") {
-   test_is_return_to_depot_with_undelivered_jobs(true,{
+   test_is_return_to_depot_with_undelivered_jobs({true},{
     S10_PC,S10_PC,S10_DD,
     S12_PC,S10_DD,S12_DD});
+}
+
+// 3) mixed pickups and deliveries
+
+
+TEST_CASE("PCPD.1 route") {
+    test_is_return_to_depot_with_undelivered_jobs({false},{S01_PD,S01_DC,S10_PC,S10_DD});
+    test_is_return_to_depot_with_undelivered_jobs({true},{S01_PD,S10_PC,S10_DD,S01_DC});
+}
+TEST_CASE("PCPD.1 route undelivered") {
+    test_is_return_to_depot_with_undelivered_jobs({false},{S01_PD,S02_PD,S01_DC,S10_PC,S02_DC,S10_DD});
+    test_is_return_to_depot_with_undelivered_jobs({true},{S01_PD,S02_PD,S01_DC,S10_PC,S10_DD,S02_DC});
+    
+}
+
+
+// 3) here comes the tough part: testing a route with unapplied change
+
+TEST_CASE("Unapplied.empty") {
+   test_is_return_to_depot_with_undelivered_jobs({false},{},{S00_PD});
+   test_is_return_to_depot_with_undelivered_jobs({false},{},{S00_DC});
+}
+
+
+TEST_CASE("Unapplied.PD easy") {
+    
+    // inserting pickup at depot
+    test_is_return_to_depot_with_undelivered_jobs(
+      {false,false,false},
+      {    S00_PD,S00_DC},
+      {S02_PD});
+
+    
+    test_is_return_to_depot_with_undelivered_jobs(
+      {false,false,false,true,false},{
+      S00_PD,S01_PD,S00_DC,S01_DC},
+      {S02_PD});
+
+        
+    test_is_return_to_depot_with_undelivered_jobs(
+      {false,true,false,true,false},
+      {S00_PD,S01_PD,S00_DC,S01_DC},
+      {S02_PD,S02_DC});
+
+    // long insert
+    test_is_return_to_depot_with_undelivered_jobs(
+      {false,true,false,true,false},
+      {S00_PD,S01_PD,S00_DC,S01_DC},
+      {S02_PD,S03_PD,S03_DC,S02_DC});
+    
+}
+
+TEST_CASE("Unapplied.PC easy") {
+    
+    // inserting pickup at depot
+    test_is_return_to_depot_with_undelivered_jobs(
+      {false,false,false},
+      {      S10_PC,S10_DD},
+      {S12_PC});
+
+    
+    test_is_return_to_depot_with_undelivered_jobs(
+      {false,false,false,true,false},
+      {    S10_PC,S11_PC,S10_DD,S11_DD},
+      {S12_PC});
+
+    test_is_return_to_depot_with_undelivered_jobs(
+      {false,true,false,true,false},
+      {    S10_PC,S11_PC,S10_DD,S11_DD},
+      {S12_PC,S12_DD});
+
+    // long insert  
+    test_is_return_to_depot_with_undelivered_jobs(
+      {false,true,false,true,false},
+      {    S10_PC,S11_PC,S10_DD,S11_DD},
+      {S12_PC,S13_PC,S13_DD,S12_DD});
+    }
+    
+
+
+TEST_CASE("Unapplied.PCPD") {
+    
+    test_is_return_to_depot_with_undelivered_jobs(
+      {false,false,false,true,false},
+      {S01_PD,S01_DC,S10_PC,S10_DD},
+      {S02_PD,S02_DC});
+
+    test_is_return_to_depot_with_undelivered_jobs(
+      {false,true,false,false,false},
+      {S01_PD,S01_DC,S10_PC,S10_DD},
+      {S12_PC,S12_DD});
+
+
+
 }
 

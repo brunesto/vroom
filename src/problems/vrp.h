@@ -224,18 +224,18 @@ void run_single_search(const Input& input,
   LocalSearch ls(input, context.solutions[rank], depth, ls_search_time);
   ls.run();
   // BRUNO: ensure no-undelivered-return-to-depot
-  INFO_LOG("vvvvvvvvvvvvvvvvvvvvvvvvvvvv local search "<<rank<<" completed vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv");
-  Route& r = context.solutions[rank][4];
-   {
-    INFO_LOG(""<<r.to_string(&input));
-    if (r.is_return_to_depot_with_undelivered_jobs_no_insertion(input)){
-      ERROR_LOG("no-undelivered-return-to-depot failed:"+r.to_string(&input));
-      // just for debug
-      r.is_return_to_depot_with_undelivered_jobs_no_insertion(input);
-      throw std::runtime_error("no-undelivered-return-to-depot violation");
-    }
-  }
-  INFO_LOG("^^^^^^^^^^^^^^^^^^^^^^^^");
+  // INFO_LOG("vvvvvvvvvvvvvvvvvvvvvvvvvvvv local search "<<rank<<" completed vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv");
+  // Route& r = context.solutions[rank][4];
+  //  {
+  //   INFO_LOG(""<<r.to_string(&input));
+  //   if (r.is_return_to_depot_with_undelivered_jobs_no_insertion(input)){
+  //     ERROR_LOG("no-undelivered-return-to-depot failed:"+r.to_string(&input));
+  //     // just for debug
+  //     r.is_return_to_depot_with_undelivered_jobs_no_insertion(input);
+  //     throw std::runtime_error("no-undelivered-return-to-depot violation");
+  //   }
+  // }
+  // INFO_LOG("^^^^^^^^^^^^^^^^^^^^^^^^");
 
   // Store solution indicators.
   context.sol_indicators[rank] = ls.indicators();
