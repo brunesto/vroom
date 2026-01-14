@@ -1,15 +1,29 @@
 {
     "version": "0.2.0",
-
     "configurations": [
-
+        {
+            "name": "Python Debugger: server.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "server.py",
+            "console": "integratedTerminal"
+        },
         {
             "name": "Debug vroom-in.json",
             "type": "cppdbg",
             "request": "launch",
             // TODO: Update this path to point to the binary created by 'make'
             "program": "${workspaceFolder}/bin/vroom",
-            "args": ["-i","${workspaceFolder}/vroom-in.json","-t","1","-x","3","--extra","no-return-undelivered-to-depot"],
+            "args": [
+                "-i",
+                "${workspaceFolder}/vroom-in.json",
+                "-t",
+                "1",
+                "-x",
+                "3",
+                "--extra",
+                "no-return-undelivered-to-depot"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -28,22 +42,28 @@
                 },
                 // there does not seem to be a way to skip the whole tree
                 {
-                "description": "Skip stepping into STL headers",
-                "text": "skip -gfi /usr/local/include/c++/13.4.0/bits/*",
-                "ignoreFailures": false
+                    "description": "Skip stepping into STL headers",
+                    "text": "skip -gfi /usr/local/include/c++/13.4.0/bits/*",
+                    "ignoreFailures": false
                 }
             ],
             "preLaunchTask": "build" // This must match the label in tasks.json,
-           
         },
-         {
+        {
             "name": "Run vroom-in.json",
             "type": "cppdbg",
             "noDebug": true,
             "request": "launch",
             // TODO: Update this path to point to the binary created by 'make'
             "program": "${workspaceFolder}/bin/vroom",
-            "args": ["-i","${workspaceFolder}/vroom-in.json","-t","1","-x","1"],
+            "args": [
+                "-i",
+                "${workspaceFolder}/vroom-in.json",
+                "-t",
+                "1",
+                "-x",
+                "1"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -51,10 +71,9 @@
             "MIMode": "gdb",
             "preLaunchTask": "build" // This must match the label in tasks.json
         },
-         {
+        {
             "name": "Tests",
             "type": "cppdbg",
-            
             "request": "launch",
             // TODO: Update this path to point to the binary created by 'make'
             "program": "${workspaceFolder}/bin/run_test",
@@ -77,13 +96,12 @@
                 },
                 // there does not seem to be a way to skip the whole tree
                 {
-                "description": "Skip stepping into STL headers",
-                "text": "skip -gfi /usr/local/include/c++/13.4.0/bits/*",
-                "ignoreFailures": false
+                    "description": "Skip stepping into STL headers",
+                    "text": "skip -gfi /usr/local/include/c++/13.4.0/bits/*",
+                    "ignoreFailures": false
                 }
             ],
             "preLaunchTask": "build-test" // This must match the label in tasks.json
         }
-
     ]
 }
