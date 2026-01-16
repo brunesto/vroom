@@ -131,7 +131,8 @@ public:
    *
    * Executes the move by modifying the source and/or target routes.
    */
-  virtual void apply() = 0;
+  virtual void applyJobs( std::vector<Index>& s_route, std::vector<Index>& t_route) = 0;
+  virtual void apply();
 
   /**
    * LLM: @brief Returns jobs that become assigned if this operator is applied.

@@ -1,5 +1,5 @@
 {
-    "cmake.sourceDirectory": "/workspaces/vroom/include/cxxopts",
+    "cmake.sourceDirectory": "/workspaces/vroom/src",
     "clangd.arguments": [
         // 1. Point to the folder containing compile_commands.json
         // CHANGE "build" to the actual folder name (e.g., "src", "out", or remove if at root)

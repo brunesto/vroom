@@ -297,8 +297,8 @@ inline Eval fill_route(const Input& input,
   // LLM: Continue inserting jobs until no more jobs can be added or no improvement is found.
   while (keep_going) {
     fill_cnt++;
-    if (fill_cnt==3)
-      TRACE_LOG("yepa");
+    
+    
     TRACE_LOG("v:"<< v_rank << " in fill_route fill_cnt:"<< fill_cnt<<" loop route_eval:"<<route_eval);
     keep_going = false;
     // LLM: Tracks the lowest insertion cost found so far in the current iteration. This cost includes the regret penalty.

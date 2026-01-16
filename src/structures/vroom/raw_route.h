@@ -11,13 +11,15 @@ All rights reserved (see LICENSE).
 */
 
 #include <cstddef>
-#include <cstdint>
+
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 
 #include "structures/typedefs.h"
 #include "structures/vroom/input/input.h"
+#include "structures/vroom/return_to_depot_with_undelivered.h"
+
 
 namespace vroom {
 
@@ -237,13 +239,13 @@ public:
   };
 
   template <std::forward_iterator Iter>
-  bool is_valid_addition_for_tw(const Input&,
+  bool is_valid_addition_for_tw(const Input& input,
                                 const Amount&,
-                                const Iter,
-                                const Iter,
-                                const Index,
-                                const Index) const {
-    return true;
+                                const Iter  first_job,
+                                const Iter last_job,
+                                const Index first_rank,
+                                const Index last_rank) const {
+    return  !is_return_to_depot_with_undelivered_jobs(input, &route, first_rank,last_rank,first_job,last_job);
   }
 
   void add(const Input& input, Index job_rank, Index rank);
@@ -295,19 +297,7 @@ public:
     }
     return os;
   }
-  // default type parameter is int*, so that the default dummies {} are of a given type
-  template <std::forward_iterator Iter>
-    bool is_return_to_depot_with_undelivered_jobs(const Input& input,                                                  
-                                                  const Index first_rank=0,
-                                                  const Iter &first_job={},
-                                                  const Iter &last_job={},
-                                                  const bool bark_when_broken=false     
-                                                  ) const;
-                                       
- bool is_return_to_depot_with_undelivered_jobs_no_insertion(const Input& input,                                                  
-                                                  const Index first_rank=0
-                                                  
-                                                  ) const;
+  
                                                                                          
 };
 

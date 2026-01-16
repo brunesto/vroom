@@ -24,6 +24,7 @@ All rights reserved (see LICENSE).
 #include "structures/vroom/input/input.h"
 #include "structures/vroom/solution/solution.h"
 #include "utils/log.h"
+#include "structures/vroom/return_to_depot_with_undelivered.h"
 namespace vroom {
 
 /**
@@ -205,7 +206,8 @@ void run_single_search(const Input& input,
     // Duplicate heuristic solution, so skip local search.
     return;
   }
-
+  
+  logSolution(input,context.solutions[rank],context.sol_indicators[rank]);
   Timeout ls_search_time;
   if (search_time.has_value()) {
     const auto heuristic_time =
@@ -239,6 +241,16 @@ void run_single_search(const Input& input,
 
   // Store solution indicators.
   context.sol_indicators[rank] = ls.indicators();
+  logSolution(input,context.solutions[rank],context.sol_indicators[rank]);
+}
+template <class Route>
+void logSolution(const Input& input,std::vector<Route> routes, utils::SolutionIndicators indicators){
+  INFO_LOG(" solution has "<< routes.size() <<" routes "<< " eval:"<< indicators);
+  for(unsigned int i=0; i<routes.size(); i++){
+    INFO_LOG(" route "<< i <<": "<< routes[i].to_string(&input));
+    INFO_LOG(" is_return_to_depot_with_undelivered_jobs_no_insertion:"<<is_return_to_depot_with_undelivered_jobs_no_insertion(input,&routes[i].route));
+  } 
+  
 }
 
 /**

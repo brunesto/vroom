@@ -18,6 +18,7 @@ All rights reserved (see LICENSE).
 #include "utils/log.h"
 
 
+#include "structures/vroom/return_to_depot_with_undelivered.h"
 
 namespace vroom {
 
@@ -1163,7 +1164,7 @@ bool TWRoute::is_valid_addition_for_tw(const Input& input,
   }
 
 
-  return  !is_return_to_depot_with_undelivered_jobs(input, first_rank,first_job,last_job);
+  return  !is_return_to_depot_with_undelivered_jobs(input, &route,first_rank,last_rank,first_job,last_job);
         
 }
 

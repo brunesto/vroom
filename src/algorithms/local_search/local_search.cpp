@@ -31,6 +31,7 @@ All rights reserved (see LICENSE).
 #include "problems/vrptw/operators/two_opt.h"
 #include "problems/vrptw/operators/unassigned_exchange.h"
 #include "utils/helpers.h"
+#include "structures/vroom/return_to_depot_with_undelivered.h"
 
 namespace vroom::ls {
 
@@ -1869,6 +1870,8 @@ void LocalSearch<Route,
       // LLM: Execute the selected operator to modify the solution.
       best_ops[best_source][best_target]->apply();
 
+      assert(!is_return_to_depot_with_undelivered_jobs_no_insertion(_input,&_sol[0].route));
+
       auto update_candidates =
         best_ops[best_source][best_target]->update_candidates();
 
@@ -2032,6 +2035,15 @@ void LocalSearch<Route,
   while (try_ls_step) {
     // A round of local search.
     run_ls_step();
+
+    
+    for(unsigned int i=0; i<_sol.size(); i++){
+      INFO_LOG(" route "<< i <<": "<< _sol[i].to_string(&_input));
+      INFO_LOG(" is_return_to_depot_with_undelivered_jobs_no_insertion:"<<is_return_to_depot_with_undelivered_jobs_no_insertion(_input, &_sol[i].route));
+    }
+   
+    assert(!is_return_to_depot_with_undelivered_jobs_no_insertion(_input, &_sol[0].route));
+    
 
     // Comparison with indicators for current solution.
     if (const utils::SolutionIndicators current_sol_indicators(_input, _sol);

@@ -9,7 +9,7 @@ All rights reserved (see LICENSE).
 
 #include "algorithms/local_search/operator.h"
 #include <cstdint>
-
+#include "structures/vroom/return_to_depot_with_undelivered.h"
 namespace vroom::ls {
 
 OperatorName Operator::get_name() const {
@@ -58,13 +58,20 @@ bool Operator::is_valid2(){
     if (!retVal)
       return false;
 
-    bool depot_check_target= target.is_return_to_depot_with_undelivered_jobs_no_insertion(_input);
+    bool depot_check_target= is_return_to_depot_with_undelivered_jobs_no_insertion(_input,&s_route);
     if (depot_check_target)
       return false;
-    bool depot_check_src= source.is_return_to_depot_with_undelivered_jobs_no_insertion(_input);
-    return !depot_check_src;
+    bool depot_check_src= is_return_to_depot_with_undelivered_jobs_no_insertion(_input,&t_route);
+    if (depot_check_src)
+      return false;
+    return true;
    
     //TRACE_LOG("operator "<< _name <<" is_valid: "<< retVal);
   }
+
+
+void Operator::apply() {
+  applyJobs(s_route, t_route);
+}
 
 } // namespace vroom::ls

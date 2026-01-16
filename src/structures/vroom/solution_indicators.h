@@ -12,6 +12,7 @@ All rights reserved (see LICENSE).
 
 #include <algorithm>
 #include <tuple>
+#include <iostream>
 
 #include "structures/typedefs.h"
 #include "structures/vroom/input/input.h"
@@ -81,6 +82,16 @@ struct SolutionIndicators {
                                                 rhs.eval.duration,
                                                 rhs.eval.distance,
                                                 rhs.routes_hash);
+  }
+
+  friend std::ostream& operator<<(std::ostream& os, const SolutionIndicators& s) {
+    os << "{\"priority_sum\":" << s.priority_sum 
+       << ",\"assigned\":" << s.assigned
+       << ",\"eval\":" << s.eval
+       << ",\"used_vehicles\":" << s.used_vehicles
+       << ",\"routes_hash\":" << s.routes_hash
+       << "}";
+    return os;
   }
 };
 
