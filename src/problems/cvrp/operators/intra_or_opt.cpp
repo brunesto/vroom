@@ -171,7 +171,9 @@ void IntraOrOpt::applyJobs(std::vector<Index>& s_route,std::vector<Index>& t_rou
     std::swap(t_route[t_rank], t_route[t_rank + 1]);
   }
 }
+ 
 void IntraOrOpt::apply() {
+
   assert(!reverse_s_edge ||
          (_input.jobs[s_route[s_rank]].type == JOB_TYPE::SINGLE &&
           _input.jobs[s_route[s_rank + 1]].type == JOB_TYPE::SINGLE));

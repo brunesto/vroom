@@ -75,7 +75,13 @@ bool PDShift::is_valid() {
   return _valid;
 }
 
+void PDShift::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+//TODO: move here the code from apply() function that only modifies the job arrays s_route and t_route.
+}
+ 
 void PDShift::apply() {
+//  applyJobs(s_route,t_route);
+
   std::vector<Index> target_with_pd;
   target_with_pd.reserve(_best_t_d_rank - _best_t_p_rank + 2);
   target_with_pd.push_back(s_route[_s_p_rank]);

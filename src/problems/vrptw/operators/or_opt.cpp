@@ -61,7 +61,13 @@ bool OrOpt::is_valid() {
   return valid;
 }
 
+void OrOpt::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+//TODO: move here the code from apply() function that only modifies the job arrays s_route and t_route.
+}
+ 
 void OrOpt::apply() {
+//  applyJobs(s_route,t_route);
+
   if (reverse_s_edge) {
     auto s_reverse_start = s_route.rbegin() + s_route.size() - 2 - s_rank;
     _tw_t_route.replace(_input,

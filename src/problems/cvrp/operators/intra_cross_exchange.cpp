@@ -221,7 +221,13 @@ bool IntraCrossExchange::is_valid() {
          s_reverse_t_reverse_is_valid || s_reverse_t_normal_is_valid;
 }
 
+void IntraCrossExchange::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+//TODO: move here the code from apply() function that only modifies the job arrays s_route and t_route.
+}
+ 
 void IntraCrossExchange::apply() {
+//  applyJobs(s_route,t_route);
+
   assert(!reverse_s_edge ||
          (_input.jobs[s_route[s_rank]].type == JOB_TYPE::SINGLE &&
           _input.jobs[s_route[s_rank + 1]].type == JOB_TYPE::SINGLE));

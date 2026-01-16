@@ -40,13 +40,19 @@ bool UnassignedExchange::is_valid() {
                                               _last_rank);
 }
 
-void UnassignedExchange::apply() {
-  _tw_s_route.replace(_input,
+void UnassignedExchange::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+ _tw_s_route.replace(_input,
                       _delivery,
                       _moved_jobs.begin(),
                       _moved_jobs.end(),
                       _first_rank,
                       _last_rank);
+}
+ 
+void UnassignedExchange::apply() {
+  applyJobs(s_route,t_route);
+
+ 
 
   assert(_unassigned.find(_u) != _unassigned.end());
   _unassigned.erase(_u);

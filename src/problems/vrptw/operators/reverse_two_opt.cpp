@@ -49,7 +49,13 @@ bool ReverseTwoOpt::is_valid() {
                                               s_route.size());
 }
 
+void ReverseTwoOpt::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+//TODO: move here the code from apply() function that only modifies the job arrays s_route and t_route.
+}
+ 
 void ReverseTwoOpt::apply() {
+//  applyJobs(s_route,t_route);
+
   std::vector<Index> t_job_ranks;
   t_job_ranks.insert(t_job_ranks.begin(),
                      t_route.rbegin() + t_route.size() - 1 - t_rank,

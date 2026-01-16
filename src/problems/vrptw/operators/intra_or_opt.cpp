@@ -62,7 +62,13 @@ bool IntraOrOpt::is_valid() {
   return valid;
 }
 
+void IntraOrOpt::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+//TODO: move here the code from apply() function that only modifies the job arrays s_route and t_route.
+}
+ 
 void IntraOrOpt::apply() {
+//  applyJobs(s_route,t_route);
+
   assert(!reverse_s_edge ||
          (_input.jobs[s_route[s_rank]].type == JOB_TYPE::SINGLE &&
           _input.jobs[s_route[s_rank + 1]].type == JOB_TYPE::SINGLE));

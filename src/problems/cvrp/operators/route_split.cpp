@@ -61,7 +61,13 @@ bool RouteSplit::is_valid() {
   return true;
 }
 
+void RouteSplit::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+//TODO: move here the code from apply() function that only modifies the job arrays s_route and t_route.
+}
+ 
 void RouteSplit::apply() {
+//  applyJobs(s_route,t_route);
+
   assert(choice.gain != NO_GAIN);
 
   // Empty route holding the end of the split.

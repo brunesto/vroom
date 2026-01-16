@@ -171,7 +171,13 @@ bool IntraMixedExchange::is_valid() {
   return s_is_normal_valid || s_is_reverse_valid;
 }
 
+void IntraMixedExchange::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+//TODO: move here the code from apply() function that only modifies the job arrays s_route and t_route.
+}
+ 
 void IntraMixedExchange::apply() {
+//  applyJobs(s_route,t_route);
+
   assert(!reverse_t_edge ||
          (_input.jobs[t_route[t_rank]].type == JOB_TYPE::SINGLE &&
           _input.jobs[t_route[t_rank + 1]].type == JOB_TYPE::SINGLE));

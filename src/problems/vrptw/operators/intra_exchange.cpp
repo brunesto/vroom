@@ -36,7 +36,13 @@ bool IntraExchange::is_valid() {
                                               _last_rank);
 }
 
+void IntraExchange::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+//TODO: move here the code from apply() function that only modifies the job arrays s_route and t_route.
+}
+ 
 void IntraExchange::apply() {
+//  applyJobs(s_route,t_route);
+
   _tw_s_route.replace(_input,
                       _delivery,
                       _moved_jobs.begin(),

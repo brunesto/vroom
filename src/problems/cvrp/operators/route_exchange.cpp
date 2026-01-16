@@ -71,7 +71,13 @@ bool RouteExchange::is_valid() {
          (target.max_load() <= _input.vehicles[s_vehicle].capacity);
 }
 
+void RouteExchange::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+//TODO: move here the code from apply() function that only modifies the job arrays s_route and t_route.
+}
+ 
 void RouteExchange::apply() {
+//  applyJobs(s_route,t_route);
+
   std::swap(s_route, t_route);
 
   source.update_amounts(_input);

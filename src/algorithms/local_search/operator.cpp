@@ -70,8 +70,8 @@ bool Operator::is_valid2(){
   }
 
 
-void Operator::apply() {
-  applyJobs(s_route, t_route);
-}
+// void Operator::apply() {
+//   applyJobs(s_route, t_route);
+// }
 
 } // namespace vroom::ls

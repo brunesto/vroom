@@ -168,7 +168,13 @@ bool MixedExchange::is_valid() {
   return valid;
 }
 
+void MixedExchange::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+//TODO: move here the code from apply() function that only modifies the job arrays s_route and t_route.
+}
+ 
 void MixedExchange::apply() {
+//  applyJobs(s_route,t_route);
+
   assert(!reverse_t_edge ||
          (_input.jobs[t_route[t_rank]].type == JOB_TYPE::SINGLE &&
           _input.jobs[t_route[t_rank + 1]].type == JOB_TYPE::SINGLE));

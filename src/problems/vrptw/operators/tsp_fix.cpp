@@ -32,7 +32,13 @@ bool TSPFix::is_valid() {
                                               s_route.size());
 }
 
+void TSPFix::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+//TODO: move here the code from apply() function that only modifies the job arrays s_route and t_route.
+}
+ 
 void TSPFix::apply() {
+//  applyJobs(s_route,t_route);
+
   _tw_s_route.replace(_input,
                       source.job_deliveries_sum(),
                       tsp_route.begin(),

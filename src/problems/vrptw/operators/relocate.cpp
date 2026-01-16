@@ -39,7 +39,13 @@ bool Relocate::is_valid() {
          _tw_s_route.is_valid_removal(_input, s_rank, 1);
 }
 
+void Relocate::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+//TODO: move here the code from apply() function that only modifies the job arrays s_route and t_route.
+}
+ 
 void Relocate::apply() {
+//  applyJobs(s_route,t_route);
+
   auto relocate_job_rank = s_route[s_rank];
 
   _tw_s_route.remove(_input, s_rank, 1);

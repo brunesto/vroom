@@ -36,6 +36,7 @@ public:
   void log_route(const std::vector<Index>& route) const;
 
   void apply() override;
+  void applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) override;
 };
 
 } // namespace vroom::vrptw

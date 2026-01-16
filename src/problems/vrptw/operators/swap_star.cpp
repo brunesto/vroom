@@ -45,7 +45,13 @@ void SwapStar::compute_gain() {
   gain_computed = true;
 }
 
+void SwapStar::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+//TODO: move here the code from apply() function that only modifies the job arrays s_route and t_route.
+}
+ 
 void SwapStar::apply() {
+//  applyJobs(s_route,t_route);
+
   const auto s_insert = ls::get_insert_range(s_route,
                                              choice.s_rank,
                                              t_route[choice.t_rank],

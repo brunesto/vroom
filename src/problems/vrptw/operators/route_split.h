@@ -31,6 +31,7 @@ public:
              const Eval& best_known_gain);
 
   void apply() override;
+  void applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) override;
 };
 
 } // namespace vroom::vrptw

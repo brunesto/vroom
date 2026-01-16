@@ -44,7 +44,13 @@ bool IntraTwoOpt::is_valid() {
   return valid;
 }
 
+void IntraTwoOpt::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+//TODO: move here the code from apply() function that only modifies the job arrays s_route and t_route.
+}
+ 
 void IntraTwoOpt::apply() {
+//  applyJobs(s_route,t_route);
+
   std::vector<Index> reversed(s_route.rbegin() + (s_route.size() - t_rank - 1),
                               s_route.rbegin() + (s_route.size() - s_rank));
 
