@@ -84,7 +84,7 @@ bool IntraTwoOpt::is_valid() {
   return valid;
 }
 
-void IntraTwoOpt::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+void IntraTwoOpt::applyJobsConst(std::vector<Index>& s_route, std::vector<Index>& t_route) const {
   std::reverse(s_route.begin() + s_rank, s_route.begin() + t_rank + 1);
 }
 

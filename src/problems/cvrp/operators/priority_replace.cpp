@@ -139,7 +139,7 @@ bool PriorityReplace::is_valid() {
   return replace_start_valid || replace_end_valid;
 }
 
-void PriorityReplace::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+void PriorityReplace::applyJobsConst(std::vector<Index>& s_route, std::vector<Index>& t_route) const {
   const std::vector<Index> addition({_u});
 if (replace_start_valid) {
     source.replaceInArrays(&s_route,_input, addition.begin(), addition.end(), 0, s_rank + 1);

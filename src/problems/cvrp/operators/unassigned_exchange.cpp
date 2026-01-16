@@ -112,7 +112,7 @@ bool UnassignedExchange::is_valid() {
 
   return valid;
 }
-void UnassignedExchange::applyJobs( std::vector<Index>& s_route, std::vector<Index>& t_route) {
+void UnassignedExchange::applyJobsConst( std::vector<Index>& s_route, std::vector<Index>& t_route) const{
   std::ranges::copy(_moved_jobs, s_route.begin() + _first_rank);
 }
  

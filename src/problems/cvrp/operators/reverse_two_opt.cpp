@@ -103,7 +103,7 @@ bool ReverseTwoOpt::is_valid() {
                                                          t_rank + 1);
 }
 
-void ReverseTwoOpt::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+void ReverseTwoOpt::applyJobsConst(std::vector<Index>& s_route, std::vector<Index>& t_route) const {
   auto nb_source = s_route.size() - 1 - s_rank;
 
   t_route.insert(t_route.begin(),

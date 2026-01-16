@@ -61,7 +61,7 @@ bool OrOpt::is_valid() {
   return valid;
 }
 
-void OrOpt::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+void OrOpt::applyJobsConst(std::vector<Index>& s_route, std::vector<Index>& t_route) const {
 //TODO: move here the code from apply() function that only modifies the job arrays s_route and t_route.
 }
  

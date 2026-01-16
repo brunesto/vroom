@@ -55,7 +55,7 @@ bool SwapStar::is_valid() {
   return true;
 }
 
-void SwapStar::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+void SwapStar::applyJobsConst(std::vector<Index>& s_route, std::vector<Index>& t_route) const {
   const auto s_value = s_route[choice.s_rank];
   const auto t_value = t_route[choice.t_rank];
 

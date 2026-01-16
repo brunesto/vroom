@@ -221,7 +221,7 @@ bool IntraCrossExchange::is_valid() {
          s_reverse_t_reverse_is_valid || s_reverse_t_normal_is_valid;
 }
 
-void IntraCrossExchange::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+void IntraCrossExchange::applyJobsConst(std::vector<Index>& s_route, std::vector<Index>& t_route) const {
   std::swap(s_route[s_rank], s_route[t_rank]);
   std::swap(s_route[s_rank + 1], s_route[t_rank + 1]);
 

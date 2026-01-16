@@ -75,7 +75,7 @@ bool PDShift::is_valid() {
   return _valid;
 }
 
-void PDShift::applyJobsConsts(std::vector<Index>& s_route, std::vector<Index>& t_route)  const{
+void PDShift::applyJobsConst(std::vector<Index>& s_route, std::vector<Index>& t_route)  const{
 
   std::vector<Index> target_with_pd;
   target_with_pd.reserve(_best_t_d_rank - _best_t_p_rank + 2);

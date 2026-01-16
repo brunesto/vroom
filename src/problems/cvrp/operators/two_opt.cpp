@@ -114,7 +114,7 @@ bool TwoOpt::is_valid() {
                                                          t_route.size());
 }
 
-void TwoOpt::applyJobsConsts(std::vector<Index>& s_route, std::vector<Index>& t_route) const {
+void TwoOpt::applyJobsConst(std::vector<Index>& s_route, std::vector<Index>& t_route) const {
   auto nb_source = s_route.size() - 1 - s_rank;
 
   t_route.insert(t_route.begin() + t_rank + 1,

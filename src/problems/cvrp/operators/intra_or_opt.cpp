@@ -162,7 +162,7 @@ bool IntraOrOpt::is_valid() {
   return is_normal_valid || is_reverse_valid;
 }
 
-void IntraOrOpt::applyJobs(std::vector<Index>& s_route,std::vector<Index>& t_route){
+void IntraOrOpt::applyJobsConst(std::vector<Index>& s_route,std::vector<Index>& t_route)const{
   auto first_job_rank = s_route[s_rank];
   auto second_job_rank = s_route[s_rank + 1];
   s_route.erase(s_route.begin() + s_rank, s_route.begin() + s_rank + 2);

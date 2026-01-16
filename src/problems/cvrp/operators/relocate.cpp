@@ -71,7 +71,7 @@ bool Relocate::is_valid() {
                                            t_rank);
 }
 
-void Relocate::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+void Relocate::applyJobsConst(std::vector<Index>& s_route, std::vector<Index>& t_route) const {
   auto relocate_job_rank = s_route[s_rank];
   s_route.erase(s_route.begin() + s_rank);
   t_route.insert(t_route.begin() + t_rank, relocate_job_rank);

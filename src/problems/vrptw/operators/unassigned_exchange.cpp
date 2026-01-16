@@ -40,7 +40,7 @@ bool UnassignedExchange::is_valid() {
                                               _last_rank);
 }
 
-void UnassignedExchange::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+void UnassignedExchange::applyJobsConst(std::vector<Index>& s_route, std::vector<Index>& t_route) const {
  _tw_s_route.replace(_input,
                       _delivery,
                       _moved_jobs.begin(),

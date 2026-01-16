@@ -1867,14 +1867,14 @@ void LocalSearch<Route,
     if (best_priority > 0 || best_gain.cost > 0) {
       assert(best_ops[best_source][best_target] != nullptr);
 
-     // assert(!is_return_to_depot_with_undelivered_jobs_no_insertion(_input,&_sol[ best_ops[best_source][best_target]->s_rank].route));
-     // assert(!is_return_to_depot_with_undelivered_jobs_no_insertion(_input,&_sol[ best_ops[best_source][best_target]->t_rank].route));
+      // assert(!is_return_to_depot_with_undelivered_jobs_no_insertion(_input,&_sol[ best_ops[best_source][best_target]->s_rank].route));
+      // assert(!is_return_to_depot_with_undelivered_jobs_no_insertion(_input,&_sol[ best_ops[best_source][best_target]->t_rank].route));
       INFO_LOG("Applying operator: " << typeid(*best_ops[best_source][best_target]).name());
       // LLM: Execute the selected operator to modify the solution.
       best_ops[best_source][best_target]->apply();
 
-      //assert(!is_return_to_depot_with_undelivered_jobs_no_insertion(_input,&_sol[ best_ops[best_source][best_target]->s_rank].route));
-      //assert(!is_return_to_depot_with_undelivered_jobs_no_insertion(_input,&_sol[ best_ops[best_source][best_target]->t_rank].route));
+      // assert(!is_return_to_depot_with_undelivered_jobs_no_insertion(_input,&_sol[ best_ops[best_source][best_target]->s_rank].route));
+      // assert(!is_return_to_depot_with_undelivered_jobs_no_insertion(_input,&_sol[ best_ops[best_source][best_target]->t_rank].route));
 
       auto update_candidates =
         best_ops[best_source][best_target]->update_candidates();
@@ -2048,7 +2048,8 @@ void LocalSearch<Route,
       INFO_LOG(" is_return_to_depot_with_undelivered_jobs_no_insertion:"<<is_return_to_depot_with_undelivered_jobs_no_insertion(_input, &_sol[i].route));
     }
    
-   // assert(!is_return_to_depot_with_undelivered_jobs_no_insertion(_input, &_sol[0].route));
+    for(int i=0; i<_sol.size(); i++)
+       assert(!is_return_to_depot_with_undelivered_jobs_no_insertion(_input, &_sol[i].route));
     
 
     // Comparison with indicators for current solution.

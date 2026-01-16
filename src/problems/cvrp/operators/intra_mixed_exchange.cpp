@@ -171,7 +171,7 @@ bool IntraMixedExchange::is_valid() {
   return s_is_normal_valid || s_is_reverse_valid;
 }
 
-void IntraMixedExchange::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+void IntraMixedExchange::applyJobsConst(std::vector<Index>& s_route, std::vector<Index>& t_route) const {
   if (reverse_t_edge) {
     std::swap(s_route[t_rank], s_route[t_rank + 1]);
   }

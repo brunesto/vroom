@@ -133,11 +133,11 @@ public:
    */
    // BRUNO: not pure virtual, cause it would have to be added to all headers
    // TODO: applyJobs should be const
-  virtual void applyJobsConsts( std::vector<Index>& s_route, std::vector<Index>& t_route) const {
+  virtual void applyJobsConst( std::vector<Index>& s_route, std::vector<Index>& t_route) const {
     assert(false);
   }
   virtual void applyJobs( std::vector<Index>& s_route, std::vector<Index>& t_route) {
-    applyJobsConsts(s_route,t_route);
+    applyJobsConst(s_route,t_route);
   }
   virtual void apply()=0;
 

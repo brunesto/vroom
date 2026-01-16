@@ -235,7 +235,7 @@ bool CrossExchange::is_valid() {
   return valid;
 }
 
-void CrossExchange::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+void CrossExchange::applyJobsConst(std::vector<Index>& s_route, std::vector<Index>& t_route) const {
   std::swap(s_route[s_rank], t_route[t_rank]);
   std::swap(s_route[s_rank + 1], t_route[t_rank + 1]);
 

@@ -53,25 +53,38 @@ bool Operator::invalidated_by(Index) const {
   return false;
 }
 
+int validCnt=0;
 bool Operator::is_valid2(){
     bool retVal = is_valid();
     if (!retVal)
       return false;
 
-    // assert(!is_return_to_depot_with_undelivered_jobs_no_insertion(_input,&s_route));
-    // assert(!is_return_to_depot_with_undelivered_jobs_no_insertion(_input,&t_route));
+    //  assert(!is_return_to_depot_with_undelivered_jobs_no_insertion(_input,&s_route));
+    //  if (&s_route!=&t_route)
+    //   assert(!is_return_to_depot_with_undelivered_jobs_no_insertion(_input,&t_route));
     
-    // std::vector<Index> s_copy=std::vector<Index>(s_route);
-    // std::vector<Index> t_copy=std::vector<Index>(t_route);
-    // applyJobs(s_copy,t_copy);
-
-
-    // bool depot_check_target= is_return_to_depot_with_undelivered_jobs_no_insertion(_input,&s_copy);
-    // if (depot_check_target)
-    //   return false;
-    // bool depot_check_src= is_return_to_depot_with_undelivered_jobs_no_insertion(_input,&t_copy);
-    // if (depot_check_src)
-    //   return false;
+    validCnt++;
+    if (validCnt==144){
+      INFO_LOG("144!");
+    }
+    
+    if (&s_route==&t_route){
+      std::vector<Index> st_copy=s_route;      
+      applyJobs(st_copy,st_copy);
+      bool depot_check_target= is_return_to_depot_with_undelivered_jobs_no_insertion(_input,&st_copy);
+      if (depot_check_target)
+         return false;
+    } else{
+      std::vector<Index> s_copy=s_route;
+      std::vector<Index> t_copy=t_route;    
+        applyJobs(s_copy,t_copy);
+      bool depot_check_target= is_return_to_depot_with_undelivered_jobs_no_insertion(_input,&s_copy);
+      if (depot_check_target)
+        return false;
+      bool depot_check_src= is_return_to_depot_with_undelivered_jobs_no_insertion(_input,&t_copy);
+      if (depot_check_src)
+        return false;
+    }
     return true;
    
     //TRACE_LOG("operator "<< _name <<" is_valid: "<< retVal);

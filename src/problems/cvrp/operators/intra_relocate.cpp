@@ -78,10 +78,10 @@ bool IntraRelocate::is_valid() {
                                                          _last_rank);
 }
 
-void IntraRelocate::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+void IntraRelocate::applyJobsConst(std::vector<Index>& s_route, std::vector<Index>& t_route) const {
   auto relocate_job_rank = s_route[s_rank];
   s_route.erase(s_route.begin() + s_rank);
-  s_route.insert(t_route.begin() + t_rank, relocate_job_rank);
+  t_route.insert(t_route.begin() + t_rank, relocate_job_rank);
 }
 
 void IntraRelocate::apply() {

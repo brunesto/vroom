@@ -130,7 +130,7 @@ bool OrOpt::is_valid() {
   return valid;
 }
 
-void OrOpt::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+void OrOpt::applyJobsConst(std::vector<Index>& s_route, std::vector<Index>& t_route) const {
   t_route.insert(t_route.begin() + t_rank,
                  s_route.begin() + s_rank,
                  s_route.begin() + s_rank + 2);

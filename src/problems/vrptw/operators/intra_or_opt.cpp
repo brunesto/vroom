@@ -62,7 +62,7 @@ bool IntraOrOpt::is_valid() {
   return valid;
 }
 
-void IntraOrOpt::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+void IntraOrOpt::applyJobsConst(std::vector<Index>& s_route, std::vector<Index>& t_route) const {
 //TODO: move here the code from apply() function that only modifies the job arrays s_route and t_route.
 }
  

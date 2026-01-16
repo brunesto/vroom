@@ -73,7 +73,7 @@ bool IntraExchange::is_valid() {
                                                          _last_rank);
 }
 
-void IntraExchange::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
+void IntraExchange::applyJobsConst(std::vector<Index>& s_route, std::vector<Index>& t_route) const {
   std::swap(s_route[s_rank], t_route[t_rank]);
 }
 
