@@ -302,19 +302,31 @@ void RawRoute::remove(const Input& input,
   update_amounts(input);
 }
 
+
+template <std::forward_iterator Iter>
+void RawRoute::replaceInArrays(std::vector<Index>* route,const Input& input,
+                       const Iter first_job,
+                       const Iter last_job,
+                       const Index first_rank,
+                       const Index last_rank) const {
+  assert(first_rank <= last_rank);
+
+  route->erase(route->begin() + first_rank, route->begin() + last_rank);
+  route->insert(route->begin() + first_rank, first_job, last_job);
+
+                       }
+
+
 template <std::forward_iterator Iter>
 void RawRoute::replace(const Input& input,
                        const Iter first_job,
                        const Iter last_job,
                        const Index first_rank,
-                       const Index last_rank) {
-  assert(first_rank <= last_rank);
-
-  route.erase(route.begin() + first_rank, route.begin() + last_rank);
-  route.insert(route.begin() + first_rank, first_job, last_job);
-
+                       const Index last_rank)  {
+  replaceInArrays(&route,input, first_job, last_job, first_rank, last_rank);   
   update_amounts(input);
                        }
+
 
 
 /**
@@ -433,12 +445,12 @@ template void RawRoute::replace(const Input& input,
                                 std::vector<Index>::iterator first_job,
                                 std::vector<Index>::iterator last_job,
                                 const Index first_rank,
-                                const Index last_rank);
+                                const Index last_rank) ;
 template void RawRoute::replace(const Input& input,
                                 std::vector<Index>::const_iterator first_job,
                                 std::vector<Index>::const_iterator last_job,
                                 const Index first_rank,
-                                const Index last_rank);
+                                const Index last_rank) ;
 
 
 

@@ -114,13 +114,7 @@ bool TwoOpt::is_valid() {
                                                          t_route.size());
 }
 
-void TwoOpt::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
-//TODO: move here the code from apply() function that only modifies the job arrays s_route and t_route.
-}
- 
-void TwoOpt::apply() {
-//  applyJobs(s_route,t_route);
-
+void TwoOpt::applyJobsConsts(std::vector<Index>& s_route, std::vector<Index>& t_route) const {
   auto nb_source = s_route.size() - 1 - s_rank;
 
   t_route.insert(t_route.begin() + t_rank + 1,
@@ -131,6 +125,10 @@ void TwoOpt::apply() {
                  t_route.begin() + t_rank + 1 + nb_source,
                  t_route.end());
   t_route.erase(t_route.begin() + t_rank + 1 + nb_source, t_route.end());
+}
+
+void TwoOpt::apply() {
+  applyJobs(s_route, t_route);
 
   source.update_amounts(_input);
   target.update_amounts(_input);

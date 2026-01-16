@@ -24,7 +24,7 @@ namespace vroom::ls {
  * and potentially applies a specific type of move to improve the solution.
  */
 class Operator {
-protected:
+public:
   const OperatorName _name;
   const Input& _input;
   const utils::SolutionState& _sol_state;
@@ -133,7 +133,12 @@ public:
    */
    // BRUNO: not pure virtual, cause it would have to be added to all headers
    // TODO: applyJobs should be const
-  virtual void applyJobs( std::vector<Index>& s_route, std::vector<Index>& t_route) =0;
+  virtual void applyJobsConsts( std::vector<Index>& s_route, std::vector<Index>& t_route) const {
+    assert(false);
+  }
+  virtual void applyJobs( std::vector<Index>& s_route, std::vector<Index>& t_route) {
+    applyJobsConsts(s_route,t_route);
+  }
   virtual void apply()=0;
 
   /**
@@ -171,8 +176,8 @@ public:
   virtual bool invalidated_by(Index rank) const;
 
   virtual ~Operator() = default;
-};
 
+};
 } // namespace vroom::ls
 
 #endif

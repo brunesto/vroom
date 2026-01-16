@@ -260,11 +260,11 @@ public:
   // first_rank and before last_rank *in place of* the current jobs
   // that may be there.
   template <std::forward_iterator Iter>
-  void replace(const Input& input,
+  void replaceInArrays(std::vector<Index>* route,const Input& input,
                Iter first_job,
                Iter last_job,
                Index first_rank,
-               Index last_rank);
+               Index last_rank) const;
 
   template <std::forward_iterator Iter>
   void replace(const Input& input,
@@ -275,6 +275,12 @@ public:
                const Index last_rank) {
     replace(input, first_job, last_job, first_rank, last_rank);
   }
+  template <std::forward_iterator Iter>
+  void replace(const Input& input,
+                       const Iter first_job,
+                       const Iter last_job,
+                       const Index first_rank,
+                       const Index last_rank)  ;
 
     // this is a bit of cpp gymnastics to simulate virtual override of the << stream operator.
     // It is NOT virtual, but it calls a virtual function, which can be overridden in derived classes.

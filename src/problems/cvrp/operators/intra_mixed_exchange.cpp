@@ -172,16 +172,6 @@ bool IntraMixedExchange::is_valid() {
 }
 
 void IntraMixedExchange::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
-//TODO: move here the code from apply() function that only modifies the job arrays s_route and t_route.
-}
- 
-void IntraMixedExchange::apply() {
-//  applyJobs(s_route,t_route);
-
-  assert(!reverse_t_edge ||
-         (_input.jobs[t_route[t_rank]].type == JOB_TYPE::SINGLE &&
-          _input.jobs[t_route[t_rank + 1]].type == JOB_TYPE::SINGLE));
-
   if (reverse_t_edge) {
     std::swap(s_route[t_rank], s_route[t_rank + 1]);
   }
@@ -197,6 +187,14 @@ void IntraMixedExchange::apply() {
   }
 
   s_route.insert(s_route.begin() + end_t_rank, t_after);
+}
+
+void IntraMixedExchange::apply() {
+  assert(!reverse_t_edge ||
+         (_input.jobs[t_route[t_rank]].type == JOB_TYPE::SINGLE &&
+          _input.jobs[t_route[t_rank + 1]].type == JOB_TYPE::SINGLE));
+
+  applyJobs(s_route, t_route);
 
   source.update_amounts(_input);
 }

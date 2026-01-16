@@ -140,7 +140,16 @@ bool PriorityReplace::is_valid() {
 }
 
 void PriorityReplace::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
-//TODO: move here the code from apply() function that only modifies the job arrays s_route and t_route.
+  const std::vector<Index> addition({_u});
+if (replace_start_valid) {
+    source.replaceInArrays(&s_route,_input, addition.begin(), addition.end(), 0, s_rank + 1);
+  } else {
+    source.replaceInArrays(&s_route,_input,
+                   addition.begin(),
+                   addition.end(),
+                   t_rank,
+                   s_route.size());
+  }
 }
  
 void PriorityReplace::apply() {
@@ -148,7 +157,6 @@ void PriorityReplace::apply() {
 
   assert(_unassigned.contains(_u));
   _unassigned.erase(_u);
-
   const std::vector<Index> addition({_u});
 
   assert(replace_start_valid xor replace_end_valid);
@@ -174,6 +182,8 @@ void PriorityReplace::apply() {
                    t_rank,
                    s_route.size());
   }
+  // applyJobs(s_route, t_route);
+  source.update_amounts(_input);
 }
 
 Priority PriorityReplace::priority_gain() {

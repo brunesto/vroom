@@ -6,7 +6,7 @@ namespace vroom {
 
     const bool TTRACE_ENABLED = false;
     const bool TRACE_ENABLED = false;
-    const bool DEBUG_ENABLED = true;
+    const bool DEBUG_ENABLED = false;
     const bool INFO_ENABLED = true;
     const bool WARN_ENABLED = true;    
     const bool ERROR_ENABLED = true;

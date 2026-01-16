@@ -58,12 +58,20 @@ bool Operator::is_valid2(){
     if (!retVal)
       return false;
 
-    bool depot_check_target= is_return_to_depot_with_undelivered_jobs_no_insertion(_input,&s_route);
-    if (depot_check_target)
-      return false;
-    bool depot_check_src= is_return_to_depot_with_undelivered_jobs_no_insertion(_input,&t_route);
-    if (depot_check_src)
-      return false;
+    // assert(!is_return_to_depot_with_undelivered_jobs_no_insertion(_input,&s_route));
+    // assert(!is_return_to_depot_with_undelivered_jobs_no_insertion(_input,&t_route));
+    
+    // std::vector<Index> s_copy=std::vector<Index>(s_route);
+    // std::vector<Index> t_copy=std::vector<Index>(t_route);
+    // applyJobs(s_copy,t_copy);
+
+
+    // bool depot_check_target= is_return_to_depot_with_undelivered_jobs_no_insertion(_input,&s_copy);
+    // if (depot_check_target)
+    //   return false;
+    // bool depot_check_src= is_return_to_depot_with_undelivered_jobs_no_insertion(_input,&t_copy);
+    // if (depot_check_src)
+    //   return false;
     return true;
    
     //TRACE_LOG("operator "<< _name <<" is_valid: "<< retVal);

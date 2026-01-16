@@ -127,6 +127,10 @@ class RouteWithInsertion{
 
   for (int r = 0; r < ri.size; r++) {
     uint16_t rjobId = ri.get(r);
+    if (rjobId==50016){
+       ri.get(r);
+      RouteWithInsertion r2(jobs, first_rank, first_job, last_job);
+    }
     const auto& rj = input.jobs[rjobId];
 
     TTRACE_LOG(" RouteWithInsertion["<<r<<"] ("<<(ri.is_inserted(r)?"inserted":"existing")<<") jobdId:"<< rjobId << " of type "<< static_cast<int>(rj.type)<< " @ location "<<rj.location_index());

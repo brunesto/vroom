@@ -41,7 +41,7 @@ public:
   bool is_valid() override;
 
   void apply() override;
-  void applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) override;
+  void applyJobsConsts(std::vector<Index>& s_route, std::vector<Index>& t_route) const override ;
 
   std::vector<Index> addition_candidates() const override;
 

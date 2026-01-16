@@ -236,19 +236,6 @@ bool CrossExchange::is_valid() {
 }
 
 void CrossExchange::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
-//TODO: move here the code from apply() function that only modifies the job arrays s_route and t_route.
-}
- 
-void CrossExchange::apply() {
-//  applyJobs(s_route,t_route);
-
-  assert(!reverse_s_edge ||
-         (_input.jobs[s_route[s_rank]].type == JOB_TYPE::SINGLE &&
-          _input.jobs[s_route[s_rank + 1]].type == JOB_TYPE::SINGLE));
-  assert(!reverse_t_edge ||
-         (_input.jobs[t_route[t_rank]].type == JOB_TYPE::SINGLE &&
-          _input.jobs[t_route[t_rank + 1]].type == JOB_TYPE::SINGLE));
-
   std::swap(s_route[s_rank], t_route[t_rank]);
   std::swap(s_route[s_rank + 1], t_route[t_rank + 1]);
 
@@ -258,6 +245,17 @@ void CrossExchange::apply() {
   if (reverse_t_edge) {
     std::swap(s_route[s_rank], s_route[s_rank + 1]);
   }
+}
+
+void CrossExchange::apply() {
+  assert(!reverse_s_edge ||
+         (_input.jobs[s_route[s_rank]].type == JOB_TYPE::SINGLE &&
+          _input.jobs[s_route[s_rank + 1]].type == JOB_TYPE::SINGLE));
+  assert(!reverse_t_edge ||
+         (_input.jobs[t_route[t_rank]].type == JOB_TYPE::SINGLE &&
+          _input.jobs[t_route[t_rank + 1]].type == JOB_TYPE::SINGLE));
+
+  applyJobs(s_route, t_route);
 
   source.update_amounts(_input);
   target.update_amounts(_input);

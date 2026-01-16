@@ -75,12 +75,7 @@ bool PDShift::is_valid() {
   return _valid;
 }
 
-void PDShift::applyJobs(std::vector<Index>& s_route, std::vector<Index>& t_route) {
-//TODO: move here the code from apply() function that only modifies the job arrays s_route and t_route.
-}
- 
-void PDShift::apply() {
-//  applyJobs(s_route,t_route);
+void PDShift::applyJobsConsts(std::vector<Index>& s_route, std::vector<Index>& t_route)  const{
 
   std::vector<Index> target_with_pd;
   target_with_pd.reserve(_best_t_d_rank - _best_t_p_rank + 2);
@@ -91,24 +86,39 @@ void PDShift::apply() {
             std::back_inserter(target_with_pd));
   target_with_pd.push_back(s_route[_s_d_rank]);
 
-  target.replace(_input,
+  target.replaceInArrays(&t_route,_input,
                  target_with_pd.begin(),
                  target_with_pd.end(),
                  _best_t_p_rank,
                  _best_t_d_rank);
 
-  if (_s_d_rank == _s_p_rank + 1) {
-    s_route.erase(s_route.begin() + _s_p_rank, s_route.begin() + _s_p_rank + 2);
-    source.update_amounts(_input);
-  } else {
-    std::vector<Index> source_without_pd(s_route.begin() + _s_p_rank + 1,
-                                         s_route.begin() + _s_d_rank);
-    source.replace(_input,
+if (_s_d_rank == _s_p_rank + 1) {
+   s_route.erase(s_route.begin() + _s_p_rank, s_route.begin() + _s_p_rank + 2);
+}else {
+  std::vector<Index> source_without_pd(s_route.begin() + _s_p_rank + 1,
+                                         s_route.begin() + _s_d_rank);   
+  source.replaceInArrays(&s_route,_input,
                    source_without_pd.begin(),
                    source_without_pd.end(),
                    _s_p_rank,
                    _s_d_rank + 1);
+}
+}
+ 
+void PDShift::apply() {
+  // manual hacks
+  assert(&target.route==&t_route);
+  assert(&source.route==&s_route);
+
+  applyJobs(s_route,t_route);
+
+  if (_s_d_rank == _s_p_rank + 1) {   
+    
+  } else {
+    // noop
   }
+  source.update_amounts(_input);
+  target.update_amounts(_input);
 }
 
 std::vector<Index> PDShift::addition_candidates() const {
