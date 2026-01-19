@@ -162,7 +162,12 @@ bool IntraOrOpt::is_valid() {
   return is_normal_valid || is_reverse_valid;
 }
 
-void IntraOrOpt::applyJobs(std::vector<Index>& s_route,std::vector<Index>& t_route){
+
+void IntraOrOpt::apply() {
+  assert(!reverse_s_edge ||
+         (_input.jobs[s_route[s_rank]].type == JOB_TYPE::SINGLE &&
+          _input.jobs[s_route[s_rank + 1]].type == JOB_TYPE::SINGLE));
+
   auto first_job_rank = s_route[s_rank];
   auto second_job_rank = s_route[s_rank + 1];
   s_route.erase(s_route.begin() + s_rank, s_route.begin() + s_rank + 2);
@@ -170,13 +175,6 @@ void IntraOrOpt::applyJobs(std::vector<Index>& s_route,std::vector<Index>& t_rou
   if (reverse_s_edge) {
     std::swap(t_route[t_rank], t_route[t_rank + 1]);
   }
-}
-void IntraOrOpt::apply() {
-  assert(!reverse_s_edge ||
-         (_input.jobs[s_route[s_rank]].type == JOB_TYPE::SINGLE &&
-          _input.jobs[s_route[s_rank + 1]].type == JOB_TYPE::SINGLE));
-
-  applyJobs(s_route, t_route);
 
   source.update_amounts(_input);
 }

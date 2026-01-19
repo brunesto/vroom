@@ -10,7 +10,10 @@
 
         // 3. (Optional) Improve code completion visuals
         "--completion-style=detailed",
-        "--header-insertion=iwyu"
+        "--header-insertion=iwyu",
+
+        // 4. Allow clangd to query the driver for system include paths
+        "--query-driver=/usr/local/bin/g++"
     ],
 
     // Ensure Microsoft IntelliSense is disabled to prevent conflicts
