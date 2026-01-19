@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y \
     glpk-utils \ 
     libasio-dev \
     python3 \
+    clangd \
     && apt-get clean -y && rm -rf /var/lib/apt/lists/*
     
 # frontend to default
